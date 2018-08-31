@@ -1,8 +1,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/lastbackend/cli)](https://goreportcard.com/report/github.com/lastbackend/cli)
 [![GoDoc](https://godoc.org/github.com/lastbackend/cli?status.png)](https://godoc.org/github.com/lastbackend/cli)
-[![Travis](https://travis-ci.org/lastbackend/lastbackend.svg?branch=master)](https://travis-ci.org/lastbackend/lastbackend)
-[![Gitter](https://badges.gitter.im/lastbackend/lastbackend.svg)](https://gitter.im/lastbackend/lastbackend?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Licensed under Apache License version 2.0](https://img.shields.io/github/license/lastbackend/lastbackend.svg?maxAge=2592000)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Travis](https://travis-ci.org/lastbackend/cli.svg?branch=master)](https://travis-ci.org/lastbackend/cli)
+[![Gitter](https://badges.gitter.im/lastbackend/cli.svg)](https://gitter.im/lastbackend/cli?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Licensed under Apache License version 2.0](https://img.shields.io/github/license/lastbackend/cli.svg?maxAge=2592000)](https://www.apache.org/licenses/LICENSE-2.0)
 [![StackShare](https://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](https://stackshare.io/last-backend/last-backend)
 
 ![alt text](docs/assets/last.backend-ce.png?raw=true "Image")
