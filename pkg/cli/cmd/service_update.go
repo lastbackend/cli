@@ -43,7 +43,7 @@ func init() {
 }
 
 const serviceUpdateExample = `
-  # Update info for 'redis' service in 'ns-demo' namespace 
+  # Update info for 'redis' service in 'ns-demo' namespace
   lb service update ns-demo redis --desc "Example new description" -m 128
 `
 

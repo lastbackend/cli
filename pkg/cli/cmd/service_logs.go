@@ -20,13 +20,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
-	"github.com/spf13/cobra"
-	"github.com/unloop/gopipe"
 	"io"
 	"strconv"
 	"strings"
+
+	"github.com/lastbackend/cli/pkg/cli/envs"
+	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
+	"github.com/spf13/cobra"
 )
 
 func init() {
@@ -34,7 +34,7 @@ func init() {
 }
 
 const serviceLogsExample = `
-  # Get 'redis' service logs for 'ns-demo' namespace  
+  # Get 'redis' service logs for 'ns-demo' namespace
   lb service logs ns-demo redis
 `
 
