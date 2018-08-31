@@ -27,10 +27,12 @@ _testmain.go
 *.prof
 *.iml
 *.srl
-
 .DS_Store
+/.vscode/
+
 vendor/*/
 docs/output/
-/build/
 coverage.txt
+/build/
 /profile.out
+
