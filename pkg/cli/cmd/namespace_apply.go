@@ -34,7 +34,7 @@ import (
 
 const applyExample = `
   # Apply manifest from file or by URL
-  lb apply -f"
+  lb namespace [name] apply -f"
 `
 
 func init() {
@@ -110,6 +110,44 @@ var applyCmd = &cobra.Command{
 					fmt.Println("ooops")
 				}
 
+			}
+
+			if m.Kind == "Route" {
+				spec := v1.Request().Route().Manifest()
+				err := spec.FromYaml(c)
+				if err != nil {
+					fmt.Errorf("invalid specification: %s", err.Error())
+					return
+				}
+
+				var rr *views.Route
+
+				if m.Meta.Name != nil {
+					rr, _ = cli.V1().Namespace(namespace).Route(*m.Meta.Name).Get(envs.Background())
+				}
+
+				if rr == nil {
+					fmt.Println("create new route")
+					rr, err = cli.V1().Namespace(namespace).Route().Create(envs.Background(), spec)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				} else {
+					fmt.Println("update route")
+					rr, err = cli.V1().Namespace(namespace).Route(rr.Meta.Name).Update(envs.Background(), spec)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				}
+
+				if rr != nil {
+					route := view.FromApiRouteView(rr)
+					route.Print()
+				} else {
+					fmt.Println("ooops")
+				}
 			}
 
 			return

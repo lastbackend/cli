@@ -47,7 +47,7 @@ var routeUpdateCmd = &cobra.Command{
 		name := args[1]
 
 		// TODO: set routeCmd options
-		opts := new(request.RouteUpdateOptions)
+		opts := new(request.RouteManifest)
 
 		if err := opts.Validate(); err != nil {
 			fmt.Println(err.Err())

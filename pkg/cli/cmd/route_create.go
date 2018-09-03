@@ -47,8 +47,8 @@ var routeCreateCmd = &cobra.Command{
 
 		namespace := args[0]
 
-		opts := new(request.RouteCreateOptions)
-		opts.Name = args[1]
+		opts := new(request.RouteManifest)
+		opts.Meta.Name = &args[1]
 
 		proxy := strings.Split(args[2], ":")
 		port, err := strconv.Atoi(proxy[1])
@@ -62,7 +62,7 @@ var routeCreateCmd = &cobra.Command{
 			return
 		}
 
-		opts.Rules = append(opts.Rules, request.RulesOption{
+		opts.Spec.Rules = append(opts.Spec.Rules, request.RouteManifestSpecRulesOption{
 			Service: proxy[0],
 			Port:    port,
 		})
@@ -79,7 +79,7 @@ var routeCreateCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println(fmt.Sprintf("Route `%s` is created in namespace `%s`", opts.Name, namespace))
+		fmt.Println(fmt.Sprintf("Route `%s` is created in namespace `%s`", opts.Meta.Name, namespace))
 
 		service := view.FromApiRouteView(response)
 		service.Print()

@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 
@@ -125,7 +126,6 @@ var serviceLogsCmd = &cobra.Command{
 		}
 
 		fmt.Println("Service logs:")
-
-		stream.New(LogsWriter{}).Pipe(&reader)
+		io.Copy(os.Stdout, reader)
 	},
 }
