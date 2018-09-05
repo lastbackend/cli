@@ -24,15 +24,7 @@ import (
 )
 
 type SecretList []*Secret
-type Secret struct {
-	Meta SecretMeta `json:"meta"`
-	Data map[string]int
-}
-
-type SecretMeta struct {
-	Name string `json:"name"`
-	Kind string `json:"kind"`
-}
+type Secret views.Secret
 
 func (sl *SecretList) Print() {
 
@@ -45,7 +37,7 @@ func (sl *SecretList) Print() {
 		data["TYPE"] = s.Meta.Kind
 		size := 0
 		for _, d := range s.Data {
-			size += d
+			size += len(d)
 		}
 		data["SIZE"] = size
 		t.AddRow(data)
@@ -71,17 +63,13 @@ func (s *Secret) Print() {
 }
 
 func FromApiSecretView(secret *views.Secret) *Secret {
-	var item = new(Secret)
 
-	item.Meta.Name = secret.Meta.Name
-	item.Meta.Kind = secret.Meta.Kind
-	item.Data = make(map[string]int, 0)
-
-	for n, d := range secret.Data {
-		item.Data[n] = len(d)
+	if secret == nil {
+		return nil
 	}
 
-	return item
+	item := Secret(*secret)
+	return &item
 }
 
 func FromApiSecretListView(secrets *views.SecretList) *SecretList {

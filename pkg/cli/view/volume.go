@@ -23,21 +23,20 @@ import (
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
 )
 
-type RouteList []*Route
-type Route views.Route
+type VolumeList []*Volume
+type Volume views.Volume
 
-func (rl *RouteList) Print() {
+func (rl *VolumeList) Print() {
 
-	t := table.New([]string{"NAMESPACE", "NAME", "DOMAIN", "HTTPS", "STATUS"})
+	t := table.New([]string{"NAMESPACE", "NAME", "STATUS", "CAPACITY"})
 	t.VisibleHeader = true
 
 	for _, r := range *rl {
 		var data = map[string]interface{}{}
 		data["NAMESPACE"] = r.Meta.Namespace
 		data["NAME"] = r.Meta.Name
-		data["DOMAIN"] = r.Spec.Domain
-		data["HTTPS"] = r.Meta.Security
-		data["STATUS"] = r.Status.State
+		data["STATUS"] = r.Status
+		data["CAPACITY"] = r.Spec.Capacity.Storage
 		t.AddRow(data)
 	}
 
@@ -46,48 +45,26 @@ func (rl *RouteList) Print() {
 	println()
 }
 
-func (r *Route) Print() {
+func (r *Volume) Print() {
 	var data = map[string]interface{}{}
 	data["NAME"] = r.Meta.Name
 	data["NAMESPACE"] = r.Meta.Namespace
-	data["DOMAIN"] = r.Spec.Domain
-	data["HTTPS"] = r.Meta.Security
-	data["STATUS"] = r.Status.State
+	data["STATUS"] = r.Status
+	data["CAPACITY"] = r.Spec.Capacity.Storage
 	println()
 	table.PrintHorizontal(data)
 	println()
-
-	t := table.New([]string{"PATH", "SERVICE", "ENDPOINT", "PORT"})
-	t.VisibleHeader = true
-
-	for _, r := range r.Spec.Rules {
-		var data = map[string]interface{}{}
-		data["PATH"] = r.Path
-		data["SERVICE"] = r.Service
-		data["ENDPOINT"] = r.Endpoint
-		data["PORT"] = r.Port
-		t.AddRow(data)
-	}
-
-	println()
-	t.Print()
-	println()
 }
 
-func FromApiRouteView(route *views.Route) *Route {
-
-	if route == nil {
-		return nil
-	}
-
-	item := Route(*route)
+func FromApiVolumeView(volume *views.Volume) *Volume {
+	item := Volume(*volume)
 	return &item
 }
 
-func FromApiRouteListView(routes *views.RouteList) *RouteList {
-	var items = make(RouteList, 0)
-	for _, route := range *routes {
-		items = append(items, FromApiRouteView(route))
+func FromApiVolumeListView(volumes *views.VolumeList) *VolumeList {
+	var items = make(VolumeList, 0)
+	for _, volume := range *volumes {
+		items = append(items, FromApiVolumeView(volume))
 	}
 	return &items
 }

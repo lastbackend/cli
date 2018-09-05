@@ -39,7 +39,8 @@ func init() {
 		secretCmd,
 		tokenCmd,
 		versionCmd,
-		applyCmd,
+		nodeCmd,
+		ingressCmd,
 	)
 }
 
@@ -158,6 +159,22 @@ var clusterCmd = &cobra.Command{
 var tokenCmd = &cobra.Command{
 	Use:   "token",
 	Short: "Manage set vars to your local storage",
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
+}
+
+var nodeCmd = &cobra.Command{
+	Use:   "node",
+	Short: "Manage cluster nodes",
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
+}
+
+var ingressCmd = &cobra.Command{
+	Use:   "ingress",
+	Short: "Manage cluster ingress servers",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},

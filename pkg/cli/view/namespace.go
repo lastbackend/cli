@@ -24,15 +24,7 @@ import (
 )
 
 type NamespaceList []*Namespace
-type Namespace struct {
-	Meta NamespaceMeta `json:"meta"`
-}
-
-type NamespaceMeta struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Endpoint    string `json:"endpoint"`
-}
+type Namespace views.Namespace
 
 func (n *Namespace) Print() {
 
@@ -66,11 +58,13 @@ func (nl *NamespaceList) Print() {
 }
 
 func FromApiNamespaceView(namespace *views.Namespace) *Namespace {
-	var item = new(Namespace)
-	item.Meta.Name = namespace.Meta.Name
-	item.Meta.Description = namespace.Meta.Description
-	item.Meta.Endpoint = namespace.Meta.Endpoint
-	return item
+
+	if namespace == nil {
+		return nil
+	}
+
+	item := Namespace(*namespace)
+	return &item
 }
 
 func FromApiNamespaceListView(namespaces *views.NamespaceList) *NamespaceList {

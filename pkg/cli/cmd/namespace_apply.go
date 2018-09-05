@@ -150,6 +150,44 @@ var applyCmd = &cobra.Command{
 				}
 			}
 
+			if m.Kind == "Volume" {
+				spec := v1.Request().Volume().Manifest()
+				err := spec.FromYaml(c)
+				if err != nil {
+					fmt.Errorf("invalid specification: %s", err.Error())
+					return
+				}
+
+				var rr *views.Volume
+
+				if m.Meta.Name != nil {
+					rr, _ = cli.V1().Namespace(namespace).Volume(*m.Meta.Name).Get(envs.Background())
+				}
+
+				if rr == nil {
+					fmt.Println("create new route")
+					rr, err = cli.V1().Namespace(namespace).Volume().Create(envs.Background(), spec)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				} else {
+					fmt.Println("update route")
+					rr, err = cli.V1().Namespace(namespace).Volume(rr.Meta.Name).Update(envs.Background(), spec)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				}
+
+				if rr != nil {
+					route := view.FromApiVolumeView(rr)
+					route.Print()
+				} else {
+					fmt.Println("ooops")
+				}
+			}
+
 			return
 
 		}
