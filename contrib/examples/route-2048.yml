@@ -1,12 +1,12 @@
 kind: Route
 version: v1
 meta:
-  name: tank
+  name: 2048
   labels:
     type: proxy
 spec:
   security: true
   rules:
-    - service: proxy
+    - service: 2048
       path: "/"
       port: 80

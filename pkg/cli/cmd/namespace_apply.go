@@ -63,6 +63,16 @@ var applyCmd = &cobra.Command{
 		cli := envs.Get().GetClient()
 
 		for _, f := range files {
+
+			s, err := os.Open(f)
+			if err != nil {
+				if os.IsNotExist(err) {
+					_ = fmt.Errorf("failed read data: file not exists: %s", f)
+					os.Exit(1)
+				}
+			}
+			s.Close()
+
 			c, err := ioutil.ReadFile(f)
 			if err != nil {
 				_ = fmt.Errorf("failed read data from file: %s", f)
@@ -77,14 +87,14 @@ var applyCmd = &cobra.Command{
 				spec := v1.Request().Service().Manifest()
 				err := spec.FromYaml(c)
 				if err != nil {
-					fmt.Errorf("invalid specification: %s", err.Error())
+					_ = fmt.Errorf("invalid specification: %s", err.Error())
 					return
 				}
 
 				var rsvc *views.Service
 
-				if m.Meta.Name != nil {
-					rsvc, _ = cli.V1().Namespace(namespace).Service(*m.Meta.Name).Get(envs.Background())
+				if spec.Meta.Name != nil {
+					rsvc, _ = cli.V1().Namespace(namespace).Service(*spec.Meta.Name).Get(envs.Background())
 				}
 
 				if rsvc == nil {
@@ -122,8 +132,8 @@ var applyCmd = &cobra.Command{
 
 				var rr *views.Route
 
-				if m.Meta.Name != nil {
-					rr, _ = cli.V1().Namespace(namespace).Route(*m.Meta.Name).Get(envs.Background())
+				if spec.Meta.Name != nil {
+					rr, _ = cli.V1().Namespace(namespace).Route(*spec.Meta.Name).Get(envs.Background())
 				}
 
 				if rr == nil {
@@ -160,8 +170,8 @@ var applyCmd = &cobra.Command{
 
 				var rr *views.Volume
 
-				if m.Meta.Name != nil {
-					rr, _ = cli.V1().Namespace(namespace).Volume(*m.Meta.Name).Get(envs.Background())
+				if spec.Meta.Name != nil {
+					rr, _ = cli.V1().Namespace(namespace).Volume(*spec.Meta.Name).Get(envs.Background())
 				}
 
 				if rr == nil {
