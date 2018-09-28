@@ -36,7 +36,7 @@ func (rl *RouteList) Print() {
 		data["NAMESPACE"] = r.Meta.Namespace
 		data["NAME"] = r.Meta.Name
 		data["DOMAIN"] = r.Spec.Domain
-		data["HTTPS"] = r.Meta.Security
+		data["PORT"] = r.Spec.Port
 		data["STATUS"] = r.Status.State
 		t.AddRow(data)
 	}
@@ -51,7 +51,7 @@ func (r *Route) Print() {
 	data["NAME"] = r.Meta.Name
 	data["NAMESPACE"] = r.Meta.Namespace
 	data["DOMAIN"] = r.Spec.Domain
-	data["HTTPS"] = r.Meta.Security
+	data["PORT"] = r.Spec.Port
 	data["STATUS"] = r.Status.State
 	println()
 	table.PrintHorizontal(data)

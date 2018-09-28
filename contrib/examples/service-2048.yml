@@ -1,0 +1,20 @@
+kind: Service
+version: v1
+meta:
+  name: 2048 
+  labels:
+    type: proxy
+    demo: test
+spec:
+  selector:
+    node:
+    labels:
+      type: "frontend"
+  replicas: 2
+  network:
+    ports: ["80:80/tcp"]
+  template:
+    containers:
+    - name: nginx
+      image:
+        name: evilroot/docker-2048

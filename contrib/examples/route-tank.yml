@@ -5,7 +5,7 @@ meta:
   labels:
     type: proxy
 spec:
-  security: true
+  port: 80
   rules:
     - service: proxy
       path: "/"
