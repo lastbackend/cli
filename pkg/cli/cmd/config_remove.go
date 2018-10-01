@@ -20,40 +20,41 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/cli/pkg/cli/view"
+	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	nodeCmd.AddCommand(nodeListCmd)
+	configCmd.AddCommand(configRemoveCmd)
 }
 
-const nodeListExample = `
-  # Get all nodes for 'ns-demo' namespace  
-  lb node ls
+const configRemoveExample = `
+  # Remove 'name' config in namespace
+  lb config remove namespace name
 `
 
-var nodeListCmd = &cobra.Command{
-	Use:     "ls",
-	Short:   "Display the nodes list",
-	Example: nodeListExample,
-	Args:    cobra.ExactArgs(0),
+var configRemoveCmd = &cobra.Command{
+	Use:     "remove [NAMESPACE] [NAME]",
+	Short:   "Remove config by name",
+	Example: configRemoveExample,
+	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 
+		namespace := args[0]
+		name := args[1]
+
+		opts := &request.ConfigRemoveOptions{Force: false}
+
+		if err := opts.Validate(); err != nil {
+			fmt.Println(err.Err())
+			return
+		}
+
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Cluster().Node().List(envs.Background())
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		cli.V1().Namespace(namespace).Config(name).Remove(envs.Background(), opts)
 
-		if response == nil || len(*response) == 0 {
-			fmt.Println("no nodes available")
-			return
-		}
-
-		list := view.FromApiNodeListView(response)
-		list.Print()
+		fmt.Println(fmt.Sprintf("Config `%s` remove now", name))
 	},
 }

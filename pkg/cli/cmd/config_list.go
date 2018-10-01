@@ -26,34 +26,36 @@ import (
 )
 
 func init() {
-	nodeCmd.AddCommand(nodeListCmd)
+	configCmd.AddCommand(configListCmd)
 }
 
-const nodeListExample = `
-  # Get all nodes for 'ns-demo' namespace  
-  lb node ls
+const configListExample = `
+  # Get all configs records
+  lb config ls"
 `
 
-var nodeListCmd = &cobra.Command{
-	Use:     "ls",
-	Short:   "Display the nodes list",
-	Example: nodeListExample,
-	Args:    cobra.ExactArgs(0),
+var configListCmd = &cobra.Command{
+	Use:     "ls [NAMESPACE]",
+	Short:   "Display the configs list",
+	Example: configListExample,
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
+		namespace := args[0]
+		
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Cluster().Node().List(envs.Background())
+		response, err := cli.V1().Namespace(namespace).Config().List(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
 		if response == nil || len(*response) == 0 {
-			fmt.Println("no nodes available")
+			fmt.Println("no configs available")
 			return
 		}
 
-		list := view.FromApiNodeListView(response)
+		list := view.FromApiConfigListView(response)
 		list.Print()
 	},
 }

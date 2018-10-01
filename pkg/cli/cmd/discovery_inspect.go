@@ -20,40 +20,38 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	nodeCmd.AddCommand(nodeListCmd)
+	discoveryCmd.AddCommand(discoveryInspectCmd)
 }
 
-const nodeListExample = `
-  # Get all nodes for 'ns-demo' namespace  
-  lb node ls
+const discoveryInspectExample = `
+  # Get information 'wef34fg' for discovery
+  lb discovery inspect wef34fg"
 `
 
-var nodeListCmd = &cobra.Command{
-	Use:     "ls",
-	Short:   "Display the nodes list",
-	Example: nodeListExample,
-	Args:    cobra.ExactArgs(0),
+var discoveryInspectCmd = &cobra.Command{
+	Use:     "inspect [NAME]",
+	Short:   "Discovery info by name",
+	Example: discoveryInspectExample,
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
+		name := args[0]
+
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Cluster().Node().List(envs.Background())
+		response, err := cli.V1().Cluster().Discovery(name).Get(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		if response == nil || len(*response) == 0 {
-			fmt.Println("no nodes available")
-			return
-		}
-
-		list := view.FromApiNodeListView(response)
-		list.Print()
+		ss := view.FromApiDiscoveryView(response)
+		ss.Print()
 	},
 }

@@ -20,40 +20,39 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	nodeCmd.AddCommand(nodeListCmd)
+	configCmd.AddCommand(configInspectCmd)
 }
 
-const nodeListExample = `
-  # Get all nodes for 'ns-demo' namespace  
-  lb node ls
+const configInspectExample = `
+  # Inspect config 'name' 
+  lb config inspect namespace name"
 `
 
-var nodeListCmd = &cobra.Command{
-	Use:     "ls",
-	Short:   "Display the nodes list",
-	Example: nodeListExample,
-	Args:    cobra.ExactArgs(0),
+var configInspectCmd = &cobra.Command{
+	Use:     "inspect [NAMESPACE] [NAME]",
+	Short:   "Inspect config",
+	Example: configInspectExample,
+	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 
+		namespace := args[0]
+		name := args[1]
+
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Cluster().Node().List(envs.Background())
+		response, err := cli.V1().Namespace(namespace).Config(name).Get(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		if response == nil || len(*response) == 0 {
-			fmt.Println("no nodes available")
-			return
-		}
-
-		list := view.FromApiNodeListView(response)
-		list.Print()
+		config := view.FromApiConfigView(response)
+		config.Print()
 	},
 }

@@ -33,77 +33,72 @@ import (
 )
 
 func init() {
-	secretUpdateCmd.Flags().StringArrayP("text", "t", make([]string, 0), "write secret in key=value format")
-	secretUpdateCmd.Flags().StringArrayP("file", "f", make([]string, 0), "create secret from files")
-	secretUpdateCmd.Flags().BoolP("auth", "a", false, "create auth secret")
-	secretUpdateCmd.Flags().StringP("username", "u", types.EmptyString, "add username to registry secret")
-	secretUpdateCmd.Flags().StringP("password", "p", types.EmptyString, "add password to registry secret")
-	secretCmd.AddCommand(secretUpdateCmd)
+	configUpdateCmd.Flags().StringArrayP("text", "t", make([]string, 0), "write config in key=value format")
+	configUpdateCmd.Flags().StringArrayP("file", "f", make([]string, 0), "create config from files")
+	configCmd.AddCommand(configUpdateCmd)
 }
 
-const secretUpdateExample = `
-  # Update 'token' secret record with 'new-secret' data
-  lb secret update token new-secret"
+const configUpdateExample = `
+  # Update 'token' config record with 'new-config' data
+  lb config update token new-config"
 `
 
-var secretUpdateCmd = &cobra.Command{
+var configUpdateCmd = &cobra.Command{
 	Use:     "update [NAME]",
-	Short:   "Change configuration of the secret",
-	Example: secretUpdateExample,
+	Short:   "Change configuration of the config",
+	Example: configUpdateExample,
 	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		auth, _ := cmd.Flags().GetBool("auth")
 		text, _ := cmd.Flags().GetStringArray("text")
 		files, _ := cmd.Flags().GetStringArray("file")
 
 		namespace := args[0]
 		name := args[1]
-		opts := new(request.SecretManifest)
-		opts.Spec.Data = make(map[string]string, 0)
+		opts := new(request.ConfigManifest)
+		opts.Spec.Data = make([]*request.ConfigManifestData, 0)
 
 		switch true {
 		case len(text) > 0:
-			opts.Spec.Type = types.KindSecretText
+			opts.Spec.Type = types.KindConfigText
 
 			for _, t := range text {
 				var (
-					k string
-					v = make([]byte, 0)
+					k, v string
 				)
 
 				kv := strings.SplitN(t, "=", 2)
 				k = kv[0]
 				if len(kv) > 1 {
-					v = []byte(kv[1])
+					v = kv[1]
 				}
-				opts.Spec.Data[k] = base64.StdEncoding.EncodeToString(v)
+
+				opts.Spec.Data = append(opts.Spec.Data, &request.ConfigManifestData{
+					Key: k,
+					Value: v,
+				})
 			}
 
 			break
-		case auth:
-			opts.Spec.Type = types.KindSecretAuth
-
-			username, _ := cmd.Flags().GetString("username")
-			password, _ := cmd.Flags().GetString("password")
-
-			opts.SetAuthData(username, password)
-
-			break
 		case len(files) > 0:
-			opts.Spec.Type = types.KindSecretFile
+			opts.Spec.Type = types.KindConfigFile
 			for _, f := range files {
 				c, err := ioutil.ReadFile(f)
 				if err != nil {
 					_ = fmt.Errorf("failed read data from file: %s", f)
 					os.Exit(1)
 				}
-				opts.Spec.Data[f] = base64.StdEncoding.EncodeToString(c)
+
+				opts.Spec.Data = append(opts.Spec.Data, &request.ConfigManifestData{
+					Key: f,
+					File: f,
+					Data: base64.StdEncoding.EncodeToString(c),
+				})
 			}
 			break
 		default:
-			fmt.Println("You need to provide secret type")
-			os.Exit(0)
+			fmt.Println("You need to provide config type")
+			return
 		}
 
 		if err := opts.Validate(); err != nil {
@@ -112,14 +107,14 @@ var secretUpdateCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Namespace(namespace).Secret(name).Update(envs.Background(), opts)
+		response, err := cli.V1().Namespace(namespace).Config(name).Update(envs.Background(), opts)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		fmt.Println(fmt.Sprintf("Secret `%s` is updated", name))
-		ss := view.FromApiSecretView(response)
+		fmt.Println(fmt.Sprintf("Config `%s` is updated", name))
+		ss := view.FromApiConfigView(response)
 		ss.Print()
 	},
 }

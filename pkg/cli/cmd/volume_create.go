@@ -22,30 +22,43 @@ import (
 	"fmt"
 
 	"github.com/lastbackend/cli/pkg/cli/envs"
+	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	serviceCmd.AddCommand(serviceRemoveCmd)
+	volumeCreateCmd.Flags().StringP("file", "f", "", "create volume from file")
+	volumeCreateCmd.Flags().StringP("desc", "d", "", "set volume description")
+	volumeCmd.AddCommand(volumeCreateCmd)
 }
 
-const serviceRemoveExample = `
-  # Remove 'redis' service in 'ns-demo' namespace
-  lb service remove ns-demo redis
+const volumeCreateExample = `
+  # Create new redis volume with description and 256 MB limit memory
+  lb volume create ns-demo redis --desc "Example description" -m 256
 `
 
-var serviceRemoveCmd = &cobra.Command{
-	Use:     "remove [NAMESPACE] [NAME]",
-	Short:   "Remove service by name",
-	Example: serviceRemoveExample,
+var volumeCreateCmd = &cobra.Command{
+	Use:     "create [NAMESPACE] [NAME]",
+	Short:   "Create volume",
+	Example: volumeCreateExample,
 	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 
 		namespace := args[0]
 		name := args[1]
 
-		opts := &request.ServiceRemoveOptions{Force: false}
+		description, _ := cmd.Flags().GetString("desc")
+
+		opts := new(request.VolumeManifest)
+
+		if len(name) != 0 {
+			opts.Meta.Name = &name
+		}
+
+		if len(description) != 0 {
+			opts.Meta.Description = &description
+		}
 
 		if err := opts.Validate(); err != nil {
 			fmt.Println(err.Err())
@@ -53,8 +66,15 @@ var serviceRemoveCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		cli.V1().Namespace(namespace).Service(name).Remove(envs.Background(), opts)
+		response, err := cli.V1().Namespace(namespace).Volume().Create(envs.Background(), opts)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 
-		fmt.Println(fmt.Sprintf("Service `%s` is successfully removed", name))
+		fmt.Println(fmt.Sprintf("Volume `%s` is created", name))
+
+		volume := view.FromApiVolumeView(response)
+		volume.Print()
 	},
 }

@@ -26,34 +26,34 @@ import (
 )
 
 func init() {
-	nodeCmd.AddCommand(nodeListCmd)
+	discoveryCmd.AddCommand(discoveryListCmd)
 }
 
-const nodeListExample = `
-  # Get all nodes for 'ns-demo' namespace  
-  lb node ls
+const discoveryListExample = `
+  # Get all discoveryes in cluster 
+  lb discovery ls
 `
 
-var nodeListCmd = &cobra.Command{
+var discoveryListCmd = &cobra.Command{
 	Use:     "ls",
-	Short:   "Display the nodes list",
-	Example: nodeListExample,
+	Short:   "Display the discoverys list",
+	Example: discoveryListExample,
 	Args:    cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Cluster().Node().List(envs.Background())
+		response, err := cli.V1().Cluster().Discovery().List(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
 		if response == nil || len(*response) == 0 {
-			fmt.Println("no nodes available")
+			fmt.Println("no discoverys available")
 			return
 		}
 
-		list := view.FromApiNodeListView(response)
+		list := view.FromApiDiscoveryListView(response)
 		list.Print()
 	},
 }

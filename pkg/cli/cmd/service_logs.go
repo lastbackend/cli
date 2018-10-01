@@ -10,7 +10,7 @@
 // if any.  The intellectual and technical concepts contained
 // herein are proprietary to Last.Backend LLC
 // and its suppliers and may be covered by Russian Federation and Foreign Patents,
-// patents in process, and are protected by trade secretCmd or copyright law.
+// patents in process, and are protected by trade secret or copyright law.
 // Dissemination of this information or reproduction of this material
 // is strictly forbidden unless prior written permission is obtained
 // from Last.Backend LLC.
@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/lastbackend/registry/pkg/distribution/types"
 	"io"
 	"os"
 	"strconv"
@@ -80,7 +81,7 @@ var serviceLogsCmd = &cobra.Command{
 		for _, deployment := range response.Deployments {
 			state := deployment.Status.State
 
-			if !(state == request.StateRunning || state == request.StateStopped) {
+			if !(state == types.StateReady) {
 				continue
 			}
 
