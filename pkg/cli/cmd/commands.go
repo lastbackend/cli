@@ -10,7 +10,7 @@
 // if any.  The intellectual and technical concepts contained
 // herein are proprietary to Last.Backend LLC
 // and its suppliers and may be covered by Russian Federation and Foreign Patents,
-// patents in process, and are protected by trade secretCmd or copyright law.
+// patents in process, and are protected by trade secret or copyright law.
 // Dissemination of this information or reproduction of this material
 // is strictly forbidden unless prior written permission is obtained
 // from Last.Backend LLC.
@@ -37,9 +37,12 @@ func init() {
 		routeCmd,
 		serviceCmd,
 		secretCmd,
+		configCmd,
+		volumeCmd,
 		tokenCmd,
 		versionCmd,
-		applyCmd,
+		nodeCmd,
+		ingressCmd,
 	)
 }
 
@@ -139,6 +142,22 @@ var secretCmd = &cobra.Command{
 	},
 }
 
+var configCmd = &cobra.Command{
+	Use:   "config",
+	Short: "Manage your configs",
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
+}
+
+var volumeCmd = &cobra.Command{
+	Use:   "volume",
+	Short: "Manage your volumes",
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
+}
+
 var routeCmd = &cobra.Command{
 	Use:   "route",
 	Short: "Manage your route",
@@ -158,6 +177,30 @@ var clusterCmd = &cobra.Command{
 var tokenCmd = &cobra.Command{
 	Use:   "token",
 	Short: "Manage set vars to your local storage",
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
+}
+
+var nodeCmd = &cobra.Command{
+	Use:   "node",
+	Short: "Manage cluster nodes",
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
+}
+
+var ingressCmd = &cobra.Command{
+	Use:   "ingress",
+	Short: "Manage cluster ingress servers",
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
+}
+
+var discoveryCmd = &cobra.Command{
+	Use:   "discovery",
+	Short: "Manage cluster discovery servers",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},

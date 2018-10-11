@@ -10,7 +10,7 @@
 // if any.  The intellectual and technical concepts contained
 // herein are proprietary to Last.Backend LLC
 // and its suppliers and may be covered by Russian Federation and Foreign Patents,
-// patents in process, and are protected by trade secretCmd or copyright law.
+// patents in process, and are protected by trade secret or copyright law.
 // Dissemination of this information or reproduction of this material
 // is strictly forbidden unless prior written permission is obtained
 // from Last.Backend LLC.
@@ -34,7 +34,7 @@ import (
 
 const applyExample = `
   # Apply manifest from file or by URL
-  lb apply -f"
+  lb namespace [name] apply -f"
 `
 
 func init() {
@@ -63,6 +63,16 @@ var applyCmd = &cobra.Command{
 		cli := envs.Get().GetClient()
 
 		for _, f := range files {
+
+			s, err := os.Open(f)
+			if err != nil {
+				if os.IsNotExist(err) {
+					_ = fmt.Errorf("failed read data: file not exists: %s", f)
+					os.Exit(1)
+				}
+			}
+			s.Close()
+
 			c, err := ioutil.ReadFile(f)
 			if err != nil {
 				_ = fmt.Errorf("failed read data from file: %s", f)
@@ -75,12 +85,16 @@ var applyCmd = &cobra.Command{
 			if m.Kind == "Service" {
 
 				spec := v1.Request().Service().Manifest()
-				spec.FromYaml(c)
+				err := spec.FromYaml(c)
+				if err != nil {
+					_ = fmt.Errorf("invalid specification: %s", err.Error())
+					return
+				}
 
 				var rsvc *views.Service
 
-				if m.Meta.Name != nil {
-					rsvc, _ = cli.V1().Namespace(namespace).Service(*m.Meta.Name).Get(envs.Background())
+				if spec.Meta.Name != nil {
+					rsvc, _ = cli.V1().Namespace(namespace).Service(*spec.Meta.Name).Get(envs.Background())
 				}
 
 				if rsvc == nil {
@@ -106,6 +120,82 @@ var applyCmd = &cobra.Command{
 					fmt.Println("ooops")
 				}
 
+			}
+
+			if m.Kind == "Route" {
+				spec := v1.Request().Route().Manifest()
+				err := spec.FromYaml(c)
+				if err != nil {
+					fmt.Errorf("invalid specification: %s", err.Error())
+					return
+				}
+
+				var rr *views.Route
+
+				if spec.Meta.Name != nil {
+					rr, _ = cli.V1().Namespace(namespace).Route(*spec.Meta.Name).Get(envs.Background())
+				}
+
+				if rr == nil {
+					fmt.Println("create new route")
+					rr, err = cli.V1().Namespace(namespace).Route().Create(envs.Background(), spec)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				} else {
+					fmt.Println("update route")
+					rr, err = cli.V1().Namespace(namespace).Route(rr.Meta.Name).Update(envs.Background(), spec)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				}
+
+				if rr != nil {
+					route := view.FromApiRouteView(rr)
+					route.Print()
+				} else {
+					fmt.Println("ooops")
+				}
+			}
+
+			if m.Kind == "Volume" {
+				spec := v1.Request().Volume().Manifest()
+				err := spec.FromYaml(c)
+				if err != nil {
+					fmt.Errorf("invalid specification: %s", err.Error())
+					return
+				}
+
+				var rr *views.Volume
+
+				if spec.Meta.Name != nil {
+					rr, _ = cli.V1().Namespace(namespace).Volume(*spec.Meta.Name).Get(envs.Background())
+				}
+
+				if rr == nil {
+					fmt.Println("create new route")
+					rr, err = cli.V1().Namespace(namespace).Volume().Create(envs.Background(), spec)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				} else {
+					fmt.Println("update route")
+					rr, err = cli.V1().Namespace(namespace).Volume(rr.Meta.Name).Update(envs.Background(), spec)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				}
+
+				if rr != nil {
+					route := view.FromApiVolumeView(rr)
+					route.Print()
+				} else {
+					fmt.Println("ooops")
+				}
 			}
 
 			return

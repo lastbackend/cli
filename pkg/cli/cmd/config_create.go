@@ -31,31 +31,23 @@ import (
 )
 
 func init() {
-	secretCreateCmd.Flags().StringArrayP("text", "t", make([]string, 0), "write text data in key=value format")
-	secretCreateCmd.Flags().StringArrayP("file", "f", make([]string, 0), "create secret from files")
-	secretCreateCmd.Flags().BoolP("auth", "a", false, "create auth secret")
-	secretCreateCmd.Flags().StringP("username", "u", types.EmptyString, "add username to registry secret")
-	secretCreateCmd.Flags().StringP("password", "p", types.EmptyString, "add password to registry secret")
-	secretCmd.AddCommand(secretCreateCmd)
+	configCreateCmd.Flags().StringArrayP("text", "t", make([]string, 0), "write text data in key=value format")
+	configCreateCmd.Flags().StringArrayP("file", "f", make([]string, 0), "create config from files")
+	configCmd.AddCommand(configCreateCmd)
 }
 
-const secretCreateExample = `
-  # Create secret 'token' with 'secret' data 
-  lb secret create token secret"
+const configCreateExample = `
+  # Create config 'token' with 'config' data 
+  lb config create token config"
 `
 
-var secretCreateCmd = &cobra.Command{
-	Use:     "create [NAMESPACE] [NAME]",
-	Short:   "Create secret",
-	Example: secretCreateExample,
-	Args:    cobra.MinimumNArgs(2),
+var configCreateCmd = &cobra.Command{
+	Use:     "create [NAME]",
+	Short:   "Create config",
+	Example: configCreateExample,
+	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		auth, err := cmd.Flags().GetBool("auth")
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
 		text, err := cmd.Flags().GetStringArray("text")
 		if err != nil {
 			fmt.Println(err.Error())
@@ -69,13 +61,14 @@ var secretCreateCmd = &cobra.Command{
 
 		namespace := args[0]
 		name := args[1]
-		opts := new(request.SecretManifest)
+
+		opts := new(request.ConfigManifest)
 		opts.Meta.Name = &name
 		opts.Spec.Data = make(map[string]string, 0)
 
 		switch true {
 		case len(text) > 0:
-			opts.Spec.Type = types.KindSecretOpaque
+			opts.Spec.Type = types.KindConfigText
 
 			for _, t := range text {
 				var (
@@ -87,37 +80,25 @@ var secretCreateCmd = &cobra.Command{
 				if len(kv) > 1 {
 					v = kv[1]
 				}
+
 				opts.Spec.Data[k] = v
 			}
 
 			break
-		case auth:
-			opts.Spec.Type = types.KindSecretAuth
-			username, err := cmd.Flags().GetString("username")
-			if err != nil {
-				fmt.Println(err.Error())
-				return
-			}
-			password, err := cmd.Flags().GetString("password")
-			if err != nil {
-				fmt.Println(err.Error())
-				return
-			}
-			opts.SetAuthData(username, password)
-			break
 		case len(files) > 0:
-			opts.Spec.Type = types.KindSecretOpaque
+			opts.Spec.Type = types.KindConfigText
 			for _, f := range files {
 				c, err := ioutil.ReadFile(f)
 				if err != nil {
 					_ = fmt.Errorf("failed read data from file: %s", f)
 					os.Exit(1)
 				}
+
 				opts.Spec.Data[f] = string(c)
 			}
 			break
 		default:
-			fmt.Println("You need to provide secret type")
+			fmt.Println("You need to provide config type")
 			return
 		}
 
@@ -127,7 +108,7 @@ var secretCreateCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Namespace(namespace).Secret().Create(envs.Background(), opts)
+		response, err := cli.V1().Namespace(namespace).Config().Create(envs.Background(), opts)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -135,7 +116,7 @@ var secretCreateCmd = &cobra.Command{
 
 		fmt.Println(fmt.Sprintf("Secret `%s` is created", name))
 
-		secret := view.FromApiSecretView(response)
-		secret.Print()
+		config := view.FromApiConfigView(response)
+		config.Print()
 	},
 }

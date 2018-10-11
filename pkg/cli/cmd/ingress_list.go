@@ -20,41 +20,40 @@ package cmd
 
 import (
 	"fmt"
-
 	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
+	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	serviceCmd.AddCommand(serviceRemoveCmd)
+	ingressCmd.AddCommand(ingressListCmd)
 }
 
-const serviceRemoveExample = `
-  # Remove 'redis' service in 'ns-demo' namespace
-  lb service remove ns-demo redis
+const ingressListExample = `
+  # Get all ingresses in cluster 
+  lb ingress ls
 `
 
-var serviceRemoveCmd = &cobra.Command{
-	Use:     "remove [NAMESPACE] [NAME]",
-	Short:   "Remove service by name",
-	Example: serviceRemoveExample,
-	Args:    cobra.ExactArgs(2),
+var ingressListCmd = &cobra.Command{
+	Use:     "ls",
+	Short:   "Display the ingresss list",
+	Example: ingressListExample,
+	Args:    cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		namespace := args[0]
-		name := args[1]
-
-		opts := &request.ServiceRemoveOptions{Force: false}
-
-		if err := opts.Validate(); err != nil {
-			fmt.Println(err.Err())
+		cli := envs.Get().GetClient()
+		response, err := cli.V1().Cluster().Ingress().List(envs.Background())
+		if err != nil {
+			fmt.Println(err)
 			return
 		}
 
-		cli := envs.Get().GetClient()
-		cli.V1().Namespace(namespace).Service(name).Remove(envs.Background(), opts)
+		if response == nil || len(*response) == 0 {
+			fmt.Println("no ingresss available")
+			return
+		}
 
-		fmt.Println(fmt.Sprintf("Service `%s` is successfully removed", name))
+		list := view.FromApiIngressListView(response)
+		list.Print()
 	},
 }

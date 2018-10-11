@@ -10,7 +10,7 @@
 // if any.  The intellectual and technical concepts contained
 // herein are proprietary to Last.Backend LLC
 // and its suppliers and may be covered by Russian Federation and Foreign Patents,
-// patents in process, and are protected by trade secretCmd or copyright law.
+// patents in process, and are protected by trade secret or copyright law.
 // Dissemination of this information or reproduction of this material
 // is strictly forbidden unless prior written permission is obtained
 // from Last.Backend LLC.
@@ -21,7 +21,6 @@ package cmd
 import (
 	"fmt"
 
-	"strconv"
 	"strings"
 
 	"github.com/lastbackend/cli/pkg/cli/envs"
@@ -41,6 +40,7 @@ func init() {
 	serviceCreateCmd.Flags().StringArrayP("port", "p", make([]string, 0), "set service ports")
 	serviceCreateCmd.Flags().StringArrayP("env", "e", make([]string, 0), "set service env")
 	serviceCreateCmd.Flags().StringArray("env-from-secret", make([]string, 0), "set service env from secret")
+	serviceCreateCmd.Flags().StringArray("env-from-config", make([]string, 0), "set service env from config")
 	serviceCmd.AddCommand(serviceCreateCmd)
 }
 
@@ -65,6 +65,7 @@ var serviceCreateCmd = &cobra.Command{
 		ports, _ := cmd.Flags().GetStringArray("ports")
 		env, _ := cmd.Flags().GetStringArray("env")
 		senv, _ := cmd.Flags().GetStringArray("env-from-secret")
+		cenv, _ := cmd.Flags().GetStringArray("env-from-config")
 		replicas, _ := cmd.Flags().GetInt("replicas")
 		auth, _ := cmd.Flags().GetString("image-secret")
 
@@ -91,23 +92,8 @@ var serviceCreateCmd = &cobra.Command{
 
 		if len(ports) > 0 {
 			opts.Spec.Network = new(request.ManifestSpecNetwork)
-			opts.Spec.Network.Ports = make(map[uint16]string, 0)
-
-			for _, p := range ports {
-				pm := strings.Split(p, ":")
-				if len(pm) != 2 {
-					fmt.Println("port mapping is in invalid format")
-					return
-				}
-
-				ext, err := strconv.ParseUint(pm[0], 10, 16)
-				if err != nil {
-					fmt.Println("port mapping is in invalid format")
-					return
-				}
-
-				opts.Spec.Network.Ports[uint16(ext)] = pm[1]
-			}
+			opts.Spec.Network.Ports = make([]string, 0)
+			opts.Spec.Network.Ports = ports
 		}
 
 		es := make(map[string]request.ManifestSpecTemplateContainerEnv)
@@ -137,8 +123,27 @@ var serviceCreateCmd = &cobra.Command{
 				}
 
 				if len(kv) == 3 {
-					eo.From.Name = kv[1]
-					eo.From.Key = kv[2]
+					eo.Secret.Name = kv[1]
+					eo.Secret.Key = kv[2]
+				}
+
+				es[eo.Name] = eo
+			}
+		}
+		if len(cenv) > 0 {
+			for _, e := range cenv {
+				kv := strings.SplitN(e, "=", 3)
+				eo := request.ManifestSpecTemplateContainerEnv{
+					Name: kv[0],
+				}
+				if len(kv) < 3 {
+					fmt.Println("Service env from config is in wrong format, should be [NAME]=[CONFIG NAME]=[CONFIG KEY]")
+					return
+				}
+
+				if len(kv) == 3 {
+					eo.Config.Name = kv[1]
+					eo.Config.Key = kv[2]
 				}
 
 				es[eo.Name] = eo

@@ -20,41 +20,42 @@ package cmd
 
 import (
 	"fmt"
-
 	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
+	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	serviceCmd.AddCommand(serviceRemoveCmd)
+	volumeCmd.AddCommand(volumeListCmd)
 }
 
-const serviceRemoveExample = `
-  # Remove 'redis' service in 'ns-demo' namespace
-  lb service remove ns-demo redis
+const volumeListExample = `
+  # Get all volumes for 'ns-demo' namespace  
+  lb volume ls ns-demo
 `
 
-var serviceRemoveCmd = &cobra.Command{
-	Use:     "remove [NAMESPACE] [NAME]",
-	Short:   "Remove service by name",
-	Example: serviceRemoveExample,
-	Args:    cobra.ExactArgs(2),
+var volumeListCmd = &cobra.Command{
+	Use:     "ls [NAMESPACE]",
+	Short:   "Display the volumes list",
+	Example: volumeListExample,
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
 		namespace := args[0]
-		name := args[1]
 
-		opts := &request.ServiceRemoveOptions{Force: false}
-
-		if err := opts.Validate(); err != nil {
-			fmt.Println(err.Err())
+		cli := envs.Get().GetClient()
+		response, err := cli.V1().Namespace(namespace).Volume().List(envs.Background())
+		if err != nil {
+			fmt.Println(err)
 			return
 		}
 
-		cli := envs.Get().GetClient()
-		cli.V1().Namespace(namespace).Service(name).Remove(envs.Background(), opts)
+		if response == nil || len(*response) == 0 {
+			fmt.Println("no volumes available")
+			return
+		}
 
-		fmt.Println(fmt.Sprintf("Service `%s` is successfully removed", name))
+		list := view.FromApiVolumeListView(response)
+		list.Print()
 	},
 }

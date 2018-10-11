@@ -22,39 +22,36 @@ import (
 	"fmt"
 
 	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
+	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	serviceCmd.AddCommand(serviceRemoveCmd)
+	discoveryCmd.AddCommand(discoveryInspectCmd)
 }
 
-const serviceRemoveExample = `
-  # Remove 'redis' service in 'ns-demo' namespace
-  lb service remove ns-demo redis
+const discoveryInspectExample = `
+  # Get information 'wef34fg' for discovery
+  lb discovery inspect wef34fg"
 `
 
-var serviceRemoveCmd = &cobra.Command{
-	Use:     "remove [NAMESPACE] [NAME]",
-	Short:   "Remove service by name",
-	Example: serviceRemoveExample,
-	Args:    cobra.ExactArgs(2),
+var discoveryInspectCmd = &cobra.Command{
+	Use:     "inspect [NAME]",
+	Short:   "Discovery info by name",
+	Example: discoveryInspectExample,
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		namespace := args[0]
-		name := args[1]
+		name := args[0]
 
-		opts := &request.ServiceRemoveOptions{Force: false}
-
-		if err := opts.Validate(); err != nil {
-			fmt.Println(err.Err())
+		cli := envs.Get().GetClient()
+		response, err := cli.V1().Cluster().Discovery(name).Get(envs.Background())
+		if err != nil {
+			fmt.Println(err)
 			return
 		}
 
-		cli := envs.Get().GetClient()
-		cli.V1().Namespace(namespace).Service(name).Remove(envs.Background(), opts)
-
-		fmt.Println(fmt.Sprintf("Service `%s` is successfully removed", name))
+		ss := view.FromApiDiscoveryView(response)
+		ss.Print()
 	},
 }

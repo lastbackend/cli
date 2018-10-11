@@ -10,7 +10,7 @@
 // if any.  The intellectual and technical concepts contained
 // herein are proprietary to Last.Backend LLC
 // and its suppliers and may be covered by Russian Federation and Foreign Patents,
-// patents in process, and are protected by trade secretCmd or copyright law.
+// patents in process, and are protected by trade secret or copyright law.
 // Dissemination of this information or reproduction of this material
 // is strictly forbidden unless prior written permission is obtained
 // from Last.Backend LLC.
@@ -20,13 +20,15 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/lastbackend/registry/pkg/distribution/types"
+	"io"
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
 	"github.com/spf13/cobra"
-	"github.com/unloop/gopipe"
-	"io"
-	"strconv"
-	"strings"
 )
 
 func init() {
@@ -34,7 +36,7 @@ func init() {
 }
 
 const serviceLogsExample = `
-  # Get 'redis' service logs for 'ns-demo' namespace  
+  # Get 'redis' service logs for 'ns-demo' namespace
   lb service logs ns-demo redis
 `
 
@@ -79,7 +81,7 @@ var serviceLogsCmd = &cobra.Command{
 		for _, deployment := range response.Deployments {
 			state := deployment.Status.State
 
-			if !(state == request.StateRunning || state == request.StateStopped) {
+			if !(state == types.StateReady) {
 				continue
 			}
 
@@ -125,7 +127,6 @@ var serviceLogsCmd = &cobra.Command{
 		}
 
 		fmt.Println("Service logs:")
-
-		stream.New(LogsWriter{}).Pipe(&reader)
+		io.Copy(os.Stdout, reader)
 	},
 }

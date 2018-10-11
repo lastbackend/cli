@@ -23,59 +23,48 @@ import (
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
 )
 
-type SecretList []*Secret
-type Secret views.Secret
+type VolumeList []*Volume
+type Volume views.Volume
 
-func (sl *SecretList) Print() {
+func (rl *VolumeList) Print() {
 
-	t := table.New([]string{"NAME", "TYPE", "SIZE"})
+	t := table.New([]string{"NAMESPACE", "NAME", "STATUS", "CAPACITY"})
 	t.VisibleHeader = true
 
-	for _, s := range *sl {
+	for _, r := range *rl {
 		var data = map[string]interface{}{}
-		data["NAME"] = s.Meta.Name
-		data["TYPE"] = s.Spec.Type
-		size := 0
-		for _, d := range s.Spec.Data {
-			size += len(d)
-		}
-		data["SIZE"] = size
+		data["NAMESPACE"] = r.Meta.Namespace
+		data["NAME"] = r.Meta.Name
+		data["STATUS"] = r.Status
+		data["CAPACITY"] = r.Spec.Capacity.Storage
 		t.AddRow(data)
 	}
+
 	println()
 	t.Print()
 	println()
 }
 
-func (s *Secret) Print() {
-	var meta = map[string]interface{}{}
-	meta["NAME"] = s.Meta.Name
-	meta["TYPE"] = s.Spec.Type
-	println()
-	table.PrintHorizontal(meta)
-	println()
+func (r *Volume) Print() {
 	var data = map[string]interface{}{}
-	for n, d := range s.Spec.Data {
-		data[n] = d
-	}
+	data["NAME"] = r.Meta.Name
+	data["NAMESPACE"] = r.Meta.Namespace
+	data["STATUS"] = r.Status
+	data["CAPACITY"] = r.Spec.Capacity.Storage
+	println()
 	table.PrintHorizontal(data)
-
+	println()
 }
 
-func FromApiSecretView(secret *views.Secret) *Secret {
-
-	if secret == nil {
-		return nil
-	}
-
-	item := Secret(*secret)
+func FromApiVolumeView(volume *views.Volume) *Volume {
+	item := Volume(*volume)
 	return &item
 }
 
-func FromApiSecretListView(secrets *views.SecretList) *SecretList {
-	var items = make(SecretList, 0)
-	for _, secret := range *secrets {
-		items = append(items, FromApiSecretView(secret))
+func FromApiVolumeListView(volumes *views.VolumeList) *VolumeList {
+	var items = make(VolumeList, 0)
+	for _, volume := range *volumes {
+		items = append(items, FromApiVolumeView(volume))
 	}
 	return &items
 }

@@ -10,7 +10,7 @@
 // if any.  The intellectual and technical concepts contained
 // herein are proprietary to Last.Backend LLC
 // and its suppliers and may be covered by Russian Federation and Foreign Patents,
-// patents in process, and are protected by trade secretCmd or copyright law.
+// patents in process, and are protected by trade secret or copyright law.
 // Dissemination of this information or reproduction of this material
 // is strictly forbidden unless prior written permission is obtained
 // from Last.Backend LLC.
@@ -36,13 +36,14 @@ const secretRemoveExample = `
 `
 
 var secretRemoveCmd = &cobra.Command{
-	Use:     "remove [NAME]",
+	Use:     "remove [NAMESPACE] [NAME]",
 	Short:   "Remove secret by name",
 	Example: secretRemoveExample,
-	Args:    cobra.ExactArgs(1),
+	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		name := args[0]
+		namespace := args[0]
+		name := args[1]
 
 		opts := &request.SecretRemoveOptions{Force: false}
 
@@ -52,7 +53,7 @@ var secretRemoveCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		cli.V1().Secret(name).Remove(envs.Background(), opts)
+		cli.V1().Namespace(namespace).Secret(name).Remove(envs.Background(), opts)
 
 		fmt.Println(fmt.Sprintf("Secret `%s` remove now", name))
 	},

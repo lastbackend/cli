@@ -11,24 +11,18 @@ spec:
     labels:
       type: "frontend"
   replicas: 1
+  network:
+    ports: ["80:80/tcp"]
   template:
     containers:
-    - name: nginx-proxy
+    - name: nginx
       image:
-        name: nginx
+        name: hackinglab/alpine-nginx-battlecity
+        names: evilroot/docker-2048
       ports:
-        - 8080
-      env:
-        - name: demo
-          value: test
-        - name: secret
-          from:
-            name: demo
-            key: test
+        - 80
       volumes:
         - name: demo
-          path: "/usr/share/nginx/html"
-        - name: test
-          path: "/test"
+          path: "/demo"
     volumes:
       - name: demo

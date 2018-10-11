@@ -10,11 +10,6 @@ go:
 install:
   - make deps
 
-before_install:
-  - curl -L  https://github.com/coreos/etcd/releases/download/v3.2.9/etcd-v3.2.9-linux-amd64.tar.gz -o etcd-v3.2.9-linux-amd64.tar.gz
-  - tar xzvf etcd-v3.2.9-linux-amd64.tar.gz
-  - ./etcd-v3.2.9-linux-amd64/etcd > /tmp/etcd.log&
-
 before_script:
   - make test
 
@@ -25,7 +20,7 @@ after_success:
   - make docs
 
 notifications:
-  slack: lastbackend:0e7apir97phOrZbD12RJ9v0P
+  slack: $ST_TOKEN
 
 deploy:
   - provider: pages

@@ -23,10 +23,10 @@ import (
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
 )
 
-type SecretList []*Secret
-type Secret views.Secret
+type ConfigList []*Config
+type Config views.Config
 
-func (sl *SecretList) Print() {
+func (sl *ConfigList) Print() {
 
 	t := table.New([]string{"NAME", "TYPE", "SIZE"})
 	t.VisibleHeader = true
@@ -34,12 +34,7 @@ func (sl *SecretList) Print() {
 	for _, s := range *sl {
 		var data = map[string]interface{}{}
 		data["NAME"] = s.Meta.Name
-		data["TYPE"] = s.Spec.Type
-		size := 0
-		for _, d := range s.Spec.Data {
-			size += len(d)
-		}
-		data["SIZE"] = size
+		data["TYPE"] = s.Meta.Kind
 		t.AddRow(data)
 	}
 	println()
@@ -47,35 +42,29 @@ func (sl *SecretList) Print() {
 	println()
 }
 
-func (s *Secret) Print() {
+func (s *Config) Print() {
 	var meta = map[string]interface{}{}
 	meta["NAME"] = s.Meta.Name
-	meta["TYPE"] = s.Spec.Type
+	meta["TYPE"] = s.Meta.Kind
 	println()
 	table.PrintHorizontal(meta)
 	println()
-	var data = map[string]interface{}{}
-	for n, d := range s.Spec.Data {
-		data[n] = d
-	}
-	table.PrintHorizontal(data)
-
 }
 
-func FromApiSecretView(secret *views.Secret) *Secret {
+func FromApiConfigView(secret *views.Config) *Config {
 
 	if secret == nil {
 		return nil
 	}
 
-	item := Secret(*secret)
+	item := Config(*secret)
 	return &item
 }
 
-func FromApiSecretListView(secrets *views.SecretList) *SecretList {
-	var items = make(SecretList, 0)
+func FromApiConfigListView(secrets *views.ConfigList) *ConfigList {
+	var items = make(ConfigList, 0)
 	for _, secret := range *secrets {
-		items = append(items, FromApiSecretView(secret))
+		items = append(items, FromApiConfigView(secret))
 	}
 	return &items
 }

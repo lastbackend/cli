@@ -10,7 +10,7 @@
 // if any.  The intellectual and technical concepts contained
 // herein are proprietary to Last.Backend LLC
 // and its suppliers and may be covered by Russian Federation and Foreign Patents,
-// patents in process, and are protected by trade secretCmd or copyright law.
+// patents in process, and are protected by trade secret or copyright law.
 // Dissemination of this information or reproduction of this material
 // is strictly forbidden unless prior written permission is obtained
 // from Last.Backend LLC.
@@ -36,16 +36,17 @@ const secretInspectExample = `
 `
 
 var secretInspectCmd = &cobra.Command{
-	Use:     "inspect [NAME]",
+	Use:     "inspect [NAMESPACE] [NAME]",
 	Short:   "Inspect secret",
 	Example: secretInspectExample,
-	Args:    cobra.ExactArgs(1),
+	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		name := args[0]
+		namespace := args[0]
+		name := args[1]
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Secret(name).Get(envs.Background())
+		response, err := cli.V1().Namespace(namespace).Secret(name).Get(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return

@@ -20,52 +20,53 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/lastbackend/lastbackend/pkg/distribution/types"
 
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
 	"github.com/spf13/cobra"
-	"strconv"
-	"strings"
 )
 
 func init() {
-	routeCmd.AddCommand(routeCreateCmd)
+	volumeCreateCmd.Flags().StringP("type", "t", "", "set volume type")
+	volumeCreateCmd.Flags().StringP("desc", "d", "", "set volume description")
+	volumeCmd.AddCommand(volumeCreateCmd)
 }
 
-const routeCreateExample = `
-  # Create new route for proxying http traffic from 'blog-ns-demo.lstbknd.io' to service 'blog-web' on 80 port
-  lb route create ns-demo blog blog-web:80"
+const volumeCreateExample = `
+  # Create new redis volume with description and 256 MB limit memory
+  lb volume create ns-demo redis --desc "Example description" -m 256
 `
 
-var routeCreateCmd = &cobra.Command{
-	Use:     "create [NAMESPACE] [NAME] [SERVICE:PORT]",
-	Short:   "Create new route",
-	Example: routeCreateExample,
-	Args:    cobra.ExactArgs(3),
+var volumeCreateCmd = &cobra.Command{
+	Use:     "create [NAMESPACE] [NAME]",
+	Short:   "Create volume",
+	Example: volumeCreateExample,
+	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 
 		namespace := args[0]
+		name := args[1]
 
-		opts := new(request.RouteManifest)
-		opts.Meta.Name = &args[1]
+		description, _ := cmd.Flags().GetString("desc")
+		kind, _ := cmd.Flags().GetString("type")
 
-		proxy := strings.Split(args[2], ":")
-		port, err := strconv.Atoi(proxy[1])
-		if err != nil {
-			fmt.Printf("Invalid port number: %s", proxy[1])
-			return
+		opts := new(request.VolumeManifest)
+
+		if len(name) != 0 {
+			opts.Meta.Name = &name
 		}
 
-		if port >= 65535 {
-			fmt.Printf("Port number is out of range: %s [65535]", proxy[1])
-			return
+		if len(description) != 0 {
+			opts.Meta.Description = &description
 		}
 
-		opts.Spec.Rules = append(opts.Spec.Rules, request.RouteManifestSpecRulesOption{
-			Service: proxy[0],
-			Port:    port,
-		})
+		switch kind {
+		case types.KindVolumeHostDir:
+			opts.Spec.Type = types.KindVolumeHostDir
+			break
+		}
 
 		if err := opts.Validate(); err != nil {
 			fmt.Println(err.Err())
@@ -73,15 +74,15 @@ var routeCreateCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Namespace(namespace).Route().Create(envs.Background(), opts)
+		response, err := cli.V1().Namespace(namespace).Volume().Create(envs.Background(), opts)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		fmt.Println(fmt.Sprintf("Route `%s` is created in namespace `%s`", *opts.Meta.Name, namespace))
+		fmt.Println(fmt.Sprintf("Volume `%s` is created", name))
 
-		service := view.FromApiRouteView(response)
-		service.Print()
+		volume := view.FromApiVolumeView(response)
+		volume.Print()
 	},
 }

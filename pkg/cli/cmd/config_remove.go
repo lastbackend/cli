@@ -27,25 +27,25 @@ import (
 )
 
 func init() {
-	serviceCmd.AddCommand(serviceRemoveCmd)
+	configCmd.AddCommand(configRemoveCmd)
 }
 
-const serviceRemoveExample = `
-  # Remove 'redis' service in 'ns-demo' namespace
-  lb service remove ns-demo redis
+const configRemoveExample = `
+  # Remove 'name' config in namespace
+  lb config remove namespace name
 `
 
-var serviceRemoveCmd = &cobra.Command{
+var configRemoveCmd = &cobra.Command{
 	Use:     "remove [NAMESPACE] [NAME]",
-	Short:   "Remove service by name",
-	Example: serviceRemoveExample,
+	Short:   "Remove config by name",
+	Example: configRemoveExample,
 	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 
 		namespace := args[0]
 		name := args[1]
 
-		opts := &request.ServiceRemoveOptions{Force: false}
+		opts := &request.ConfigRemoveOptions{Force: false}
 
 		if err := opts.Validate(); err != nil {
 			fmt.Println(err.Err())
@@ -53,8 +53,8 @@ var serviceRemoveCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		cli.V1().Namespace(namespace).Service(name).Remove(envs.Background(), opts)
+		cli.V1().Namespace(namespace).Config(name).Remove(envs.Background(), opts)
 
-		fmt.Println(fmt.Sprintf("Service `%s` is successfully removed", name))
+		fmt.Println(fmt.Sprintf("Config `%s` remove now", name))
 	},
 }

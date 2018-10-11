@@ -24,35 +24,7 @@ import (
 )
 
 type ClusterList []*Cluster
-type Cluster struct {
-	Meta  ClusterMeta  `json:"meta"`
-	State ClusterState `json:"state"`
-}
-
-type ClusterMeta struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Labels      map[string]string `json:"labels"`
-}
-
-type ClusterState struct {
-	Nodes struct {
-		Total   int `json:"total"`
-		Online  int `json:"online"`
-		Offline int `json:"offline"`
-	} `json:"nodes"`
-	Capacity  ClusterResources `json:"capacity"`
-	Allocated ClusterResources `json:"allocated"`
-	Deleted   bool             `json:"deleted"`
-}
-
-type ClusterResources struct {
-	Containers int   `json:"containers"`
-	Pods       int   `json:"pods"`
-	Memory     int64 `json:"memory"`
-	Cpu        int   `json:"cpu"`
-	Storage    int   `json:"storage"`
-}
+type Cluster views.Cluster
 
 func (c *Cluster) Print() {
 
@@ -65,21 +37,11 @@ func (c *Cluster) Print() {
 }
 
 func FromApiClusterView(cluster *views.Cluster) *Cluster {
-	var item = new(Cluster)
 
-	item.State.Nodes.Total = cluster.Status.Nodes.Total
-	item.State.Nodes.Online = cluster.Status.Nodes.Online
-	item.State.Nodes.Offline = cluster.Status.Nodes.Offline
-	item.State.Capacity.Containers = cluster.Status.Capacity.Containers
-	item.State.Capacity.Pods = cluster.Status.Capacity.Pods
-	item.State.Capacity.Memory = cluster.Status.Capacity.Memory
-	item.State.Capacity.Cpu = cluster.Status.Capacity.Cpu
-	item.State.Capacity.Storage = cluster.Status.Capacity.Storage
-	item.State.Allocated.Containers = cluster.Status.Allocated.Containers
-	item.State.Allocated.Pods = cluster.Status.Allocated.Pods
-	item.State.Allocated.Memory = cluster.Status.Allocated.Memory
-	item.State.Allocated.Cpu = cluster.Status.Allocated.Cpu
-	item.State.Allocated.Storage = cluster.Status.Allocated.Storage
+	if cluster == nil {
+		return nil
+	}
 
-	return item
+	item := Cluster(*cluster)
+	return &item
 }

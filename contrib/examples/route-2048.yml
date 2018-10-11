@@ -1,0 +1,12 @@
+kind: Route
+version: v1
+meta:
+  name: 2048
+  labels:
+    type: proxy
+spec:
+  port: 80
+  rules:
+    - service: 2048
+      path: "/"
+      port: 80
