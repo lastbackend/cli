@@ -36,6 +36,7 @@ func init() {
 	serviceUpdateCmd.Flags().StringArrayP("port", "p", make([]string, 0), "set service ports")
 	serviceUpdateCmd.Flags().StringArrayP("env", "e", make([]string, 0), "set service env")
 	serviceUpdateCmd.Flags().StringArray("env-from-secret", make([]string, 0), "set service env from secret")
+	serviceUpdateCmd.Flags().StringArray("env-from-config", make([]string, 0), "set service env from config")
 	serviceUpdateCmd.Flags().StringP("image", "i", "", "set service image")
 	serviceUpdateCmd.Flags().String("image-secret", "", "set service image auth")
 	serviceCmd.AddCommand(serviceUpdateCmd)
@@ -61,6 +62,7 @@ var serviceUpdateCmd = &cobra.Command{
 		ports, _ := cmd.Flags().GetStringArray("port")
 		env, _ := cmd.Flags().GetStringArray("env")
 		senv, _ := cmd.Flags().GetStringArray("env-from-secret")
+		cenv, _ := cmd.Flags().GetStringArray("env-from-config")
 		replicas, _ := cmd.Flags().GetInt("replicas")
 		image, _ := cmd.Flags().GetString("image")
 		secret, _ := cmd.Flags().GetString("image-secret")
@@ -118,8 +120,27 @@ var serviceUpdateCmd = &cobra.Command{
 				}
 
 				if len(kv) == 3 {
-					eo.From.Name = kv[1]
-					eo.From.Key = kv[2]
+					eo.Secret.Name = kv[1]
+					eo.Secret.Key = kv[2]
+				}
+
+				es[eo.Name] = eo
+			}
+		}
+		if len(cenv) > 0 {
+			for _, e := range cenv {
+				kv := strings.SplitN(e, "=", 3)
+				eo := request.ManifestSpecTemplateContainerEnv{
+					Name: kv[0],
+				}
+				if len(kv) < 3 {
+					fmt.Println("Service env from config is in wrong format, should be [NAME]=[CONFIG NAME]=[CONFIG STORAGE KEY]")
+					return
+				}
+
+				if len(kv) == 3 {
+					eo.Config.Name = kv[1]
+					eo.Config.Key = kv[2]
 				}
 
 				es[eo.Name] = eo

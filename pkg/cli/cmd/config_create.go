@@ -20,16 +20,14 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"strings"
-	"encoding/base64"
-
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
 	"github.com/lastbackend/lastbackend/pkg/distribution/types"
 	"github.com/spf13/cobra"
+	"io/ioutil"
+	"os"
+	"strings"
 )
 
 func init() {
@@ -66,7 +64,7 @@ var configCreateCmd = &cobra.Command{
 
 		opts := new(request.ConfigManifest)
 		opts.Meta.Name = &name
-		opts.Spec.Data = make([]*request.ConfigManifestData, 0)
+		opts.Spec.Data = make(map[string]string, 0)
 
 		switch true {
 		case len(text) > 0:
@@ -83,10 +81,7 @@ var configCreateCmd = &cobra.Command{
 					v = kv[1]
 				}
 
-				opts.Spec.Data = append(opts.Spec.Data, &request.ConfigManifestData{
-					Key: k,
-					Value: v,
-				})
+				opts.Spec.Data[k] = v
 			}
 
 			break
@@ -99,11 +94,7 @@ var configCreateCmd = &cobra.Command{
 					os.Exit(1)
 				}
 
-				opts.Spec.Data = append(opts.Spec.Data, &request.ConfigManifestData{
-					Key: f,
-					File: f,
-					Data: base64.StdEncoding.EncodeToString(c),
-				})
+				opts.Spec.Data[f] = string(c)
 			}
 			break
 		default:

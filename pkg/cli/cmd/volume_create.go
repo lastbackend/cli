@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/lastbackend/lastbackend/pkg/distribution/types"
 
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/cli/pkg/cli/view"
@@ -28,7 +29,7 @@ import (
 )
 
 func init() {
-	volumeCreateCmd.Flags().StringP("file", "f", "", "create volume from file")
+	volumeCreateCmd.Flags().StringP("type", "t", "", "set volume type")
 	volumeCreateCmd.Flags().StringP("desc", "d", "", "set volume description")
 	volumeCmd.AddCommand(volumeCreateCmd)
 }
@@ -49,6 +50,7 @@ var volumeCreateCmd = &cobra.Command{
 		name := args[1]
 
 		description, _ := cmd.Flags().GetString("desc")
+		kind, _ := cmd.Flags().GetString("type")
 
 		opts := new(request.VolumeManifest)
 
@@ -58,6 +60,12 @@ var volumeCreateCmd = &cobra.Command{
 
 		if len(description) != 0 {
 			opts.Meta.Description = &description
+		}
+
+		switch kind {
+		case types.KindVolumeHostDir:
+			opts.Spec.Type = types.KindVolumeHostDir
+			break
 		}
 
 		if err := opts.Validate(); err != nil {

@@ -10,7 +10,7 @@ spec:
     node:
     labels:
       type: "frontend"
-  replicas: 2
+  replicas: 1
   network:
     ports: ["80:80/tcp"]
   template:
