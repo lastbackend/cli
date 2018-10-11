@@ -75,7 +75,7 @@ var configUpdateCmd = &cobra.Command{
 
 			break
 		case len(files) > 0:
-			opts.Spec.Type = types.KindConfigFile
+			opts.Spec.Type = types.KindConfigText
 			for _, f := range files {
 				c, err := ioutil.ReadFile(f)
 				if err != nil {
