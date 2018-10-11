@@ -79,7 +79,7 @@ var routeCreateCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println(fmt.Sprintf("Route `%s` is created in namespace `%s`", opts.Meta.Name, namespace))
+		fmt.Println(fmt.Sprintf("Route `%s` is created in namespace `%s`", *opts.Meta.Name, namespace))
 
 		service := view.FromApiRouteView(response)
 		service.Print()
