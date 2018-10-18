@@ -27,30 +27,30 @@ import (
 )
 
 func init() {
-	clusterCmd.AddCommand(ClusterInspectCmd)
+	clusterCmd.AddCommand(ClusterListCmd)
 }
 
-const clusterInspectExample = `
+const clusterListExample = `
   # Get information about cluster 
-  lb cluster inspect
+  lb cluster ls
 `
 
-var ClusterInspectCmd = &cobra.Command{
-	Use:     "inspect",
-	Short:   "Get cluster info",
-	Example: clusterInspectExample,
+var ClusterListCmd = &cobra.Command{
+	Use:     "ls",
+	Short:   "Get available cluster list",
+	Example: clusterListExample,
 	Args:    cobra.NoArgs,
 	Run: func(_ *cobra.Command, _ []string) {
 
 		cli := envs.Get().GetClient()
 
-		response, err := cli.Cluster.V1().Cluster().Get(envs.Background())
+		err := cli.Genesis.V1().Cluster().List(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		cluster := view.FromApiClusterView(response)
+		cluster := view.FromApiClusterListView(nil)
 		cluster.Print()
 	},
 }

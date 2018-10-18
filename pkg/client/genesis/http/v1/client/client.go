@@ -16,41 +16,29 @@
 // from Last.Backend LLC.
 //
 
-package cmd
+package client
 
 import (
-	"fmt"
-
-	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/cli/pkg/cli/view"
-	"github.com/spf13/cobra"
+	"github.com/lastbackend/cli/pkg/client/genesis/types"
+	"github.com/lastbackend/lastbackend/pkg/util/http/request"
 )
 
-func init() {
-	clusterCmd.AddCommand(ClusterInspectCmd)
+type Client struct {
+	client *request.RESTClient
 }
 
-const clusterInspectExample = `
-  # Get information about cluster 
-  lb cluster inspect
-`
+func New(req *request.RESTClient) *Client {
+	return &Client{client: req}
+}
 
-var ClusterInspectCmd = &cobra.Command{
-	Use:     "inspect",
-	Short:   "Get cluster info",
-	Example: clusterInspectExample,
-	Args:    cobra.NoArgs,
-	Run: func(_ *cobra.Command, _ []string) {
+func (s *Client) Registry() types.RegistryClientV1 {
+	return newRegistryClient(s.client)
+}
 
-		cli := envs.Get().GetClient()
+func (s *Client) Account() types.AccountClientV1 {
+	return newAccountClient(s.client)
+}
 
-		response, err := cli.Cluster.V1().Cluster().Get(envs.Background())
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		cluster := view.FromApiClusterView(response)
-		cluster.Print()
-	},
+func (s *Client) Cluster() types.ClusterClientV1 {
+	return newClusterClient(s.client)
 }

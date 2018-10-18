@@ -16,41 +16,34 @@
 // from Last.Backend LLC.
 //
 
-package cmd
+package genesis
 
 import (
-	"fmt"
-
-	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/cli/pkg/cli/view"
-	"github.com/spf13/cobra"
+	"github.com/lastbackend/cli/pkg/client/genesis/config"
+	"github.com/lastbackend/cli/pkg/client/genesis/http"
+	"github.com/lastbackend/cli/pkg/client/genesis/types"
+	"github.com/lastbackend/lastbackend/pkg/log"
 )
 
-func init() {
-	clusterCmd.AddCommand(ClusterInspectCmd)
+const (
+	ClientHTTP = "http"
+	ClientGRPC = "grpc"
+)
+
+type IClient interface {
+	V1() types.ClientV1
 }
 
-const clusterInspectExample = `
-  # Get information about cluster 
-  lb cluster inspect
-`
+func New(driver string, endpoint string, config *config.Config) (IClient, error) {
+	switch driver {
+	case ClientHTTP:
+		return http.New(endpoint, config)
+	default:
+		log.Panicf("driver %s not defined", driver)
+	}
+	return nil, nil
+}
 
-var ClusterInspectCmd = &cobra.Command{
-	Use:     "inspect",
-	Short:   "Get cluster info",
-	Example: clusterInspectExample,
-	Args:    cobra.NoArgs,
-	Run: func(_ *cobra.Command, _ []string) {
-
-		cli := envs.Get().GetClient()
-
-		response, err := cli.Cluster.V1().Cluster().Get(envs.Background())
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		cluster := view.FromApiClusterView(response)
-		cluster.Print()
-	},
+func NewConfig() *config.Config {
+	return new(config.Config)
 }
