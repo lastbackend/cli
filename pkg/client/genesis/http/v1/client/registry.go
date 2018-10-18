@@ -16,41 +16,22 @@
 // from Last.Backend LLC.
 //
 
-package cmd
+package client
 
 import (
-	"fmt"
-
-	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/cli/pkg/cli/view"
-	"github.com/spf13/cobra"
+	"context"
+	"github.com/lastbackend/lastbackend/pkg/util/http/request"
 )
 
-func init() {
-	clusterCmd.AddCommand(ClusterInspectCmd)
+type RegistryClient struct {
+	client *request.RESTClient
 }
 
-const clusterInspectExample = `
-  # Get information about cluster 
-  lb cluster inspect
-`
+func (ac *RegistryClient) Get(ctx context.Context) error {
 
-var ClusterInspectCmd = &cobra.Command{
-	Use:     "inspect",
-	Short:   "Get cluster info",
-	Example: clusterInspectExample,
-	Args:    cobra.NoArgs,
-	Run: func(_ *cobra.Command, _ []string) {
+	return nil
+}
 
-		cli := envs.Get().GetClient()
-
-		response, err := cli.Cluster.V1().Cluster().Get(envs.Background())
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		cluster := view.FromApiClusterView(response)
-		cluster.Print()
-	},
+func newRegistryClient(req *request.RESTClient) *RegistryClient {
+	return &RegistryClient{client: req}
 }

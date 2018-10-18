@@ -26,6 +26,33 @@ import (
 type ClusterList []*Cluster
 type Cluster views.Cluster
 
+func (cl *ClusterList) Print() {
+
+	println()
+
+	t := table.New([]string{"NAME"})
+	t.VisibleHeader = true
+
+	for _, s := range *cl {
+
+		var data = map[string]interface{}{}
+		data["NAME"] = s.Meta.Name
+		t.AddRow(data)
+	}
+	println()
+	t.Print()
+	println()
+}
+
+func FromApiClusterListView(clusters *views.ClusterList) *ClusterList {
+
+	var items = make(ClusterList, 0)
+	for _, cluster := range *clusters {
+		items = append(items, FromApiClusterView(cluster))
+	}
+	return &items
+}
+
 func (c *Cluster) Print() {
 
 	println()
