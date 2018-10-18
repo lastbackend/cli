@@ -94,18 +94,18 @@ var applyCmd = &cobra.Command{
 				var rsvc *views.Service
 
 				if spec.Meta.Name != nil {
-					rsvc, _ = cli.V1().Namespace(namespace).Service(*spec.Meta.Name).Get(envs.Background())
+					rsvc, _ = cli.Cluster.V1().Namespace(namespace).Service(*spec.Meta.Name).Get(envs.Background())
 				}
 
 				if rsvc == nil {
 					fmt.Println("create new service")
-					rsvc, err = cli.V1().Namespace(namespace).Service().Create(envs.Background(), spec)
+					rsvc, err = cli.Cluster.V1().Namespace(namespace).Service().Create(envs.Background(), spec)
 					if err != nil {
 						fmt.Println(err)
 						return
 					}
 				} else {
-					rsvc, err = cli.V1().Namespace(namespace).Service(rsvc.Meta.Name).Update(envs.Background(), spec)
+					rsvc, err = cli.Cluster.V1().Namespace(namespace).Service(rsvc.Meta.Name).Update(envs.Background(), spec)
 					if err != nil {
 						fmt.Println(3)
 						fmt.Println(err)
@@ -133,19 +133,19 @@ var applyCmd = &cobra.Command{
 				var rr *views.Route
 
 				if spec.Meta.Name != nil {
-					rr, _ = cli.V1().Namespace(namespace).Route(*spec.Meta.Name).Get(envs.Background())
+					rr, _ = cli.Cluster.V1().Namespace(namespace).Route(*spec.Meta.Name).Get(envs.Background())
 				}
 
 				if rr == nil {
 					fmt.Println("create new route")
-					rr, err = cli.V1().Namespace(namespace).Route().Create(envs.Background(), spec)
+					rr, err = cli.Cluster.V1().Namespace(namespace).Route().Create(envs.Background(), spec)
 					if err != nil {
 						fmt.Println(err)
 						return
 					}
 				} else {
 					fmt.Println("update route")
-					rr, err = cli.V1().Namespace(namespace).Route(rr.Meta.Name).Update(envs.Background(), spec)
+					rr, err = cli.Cluster.V1().Namespace(namespace).Route(rr.Meta.Name).Update(envs.Background(), spec)
 					if err != nil {
 						fmt.Println(err)
 						return
@@ -171,19 +171,19 @@ var applyCmd = &cobra.Command{
 				var rr *views.Volume
 
 				if spec.Meta.Name != nil {
-					rr, _ = cli.V1().Namespace(namespace).Volume(*spec.Meta.Name).Get(envs.Background())
+					rr, _ = cli.Cluster.V1().Namespace(namespace).Volume(*spec.Meta.Name).Get(envs.Background())
 				}
 
 				if rr == nil {
 					fmt.Println("create new route")
-					rr, err = cli.V1().Namespace(namespace).Volume().Create(envs.Background(), spec)
+					rr, err = cli.Cluster.V1().Namespace(namespace).Volume().Create(envs.Background(), spec)
 					if err != nil {
 						fmt.Println(err)
 						return
 					}
 				} else {
 					fmt.Println("update route")
-					rr, err = cli.V1().Namespace(namespace).Volume(rr.Meta.Name).Update(envs.Background(), spec)
+					rr, err = cli.Cluster.V1().Namespace(namespace).Volume(rr.Meta.Name).Update(envs.Background(), spec)
 					if err != nil {
 						fmt.Println(err)
 						return

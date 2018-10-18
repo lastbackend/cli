@@ -70,7 +70,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d2a399c9b93572ab5a0608b7c9ebec04da64f491716029fab98c72aa8c2992a1"
+  digest = "1:ddb95b5ca44699dc5b412071cdf403766647abd28da2c89e8e4f3d1dc02d712a"
   name = "github.com/lastbackend/lastbackend"
   packages = [
     "pkg/api/client",
@@ -93,18 +93,28 @@
     "pkg/util/validator",
   ]
   pruneopts = "UT"
-  revision = "78d1d7c403a0b8142756ae20f3fe29d53811b4d2"
+  revision = "6721662400968678233db303548513d382b304eb"
 
 [[projects]]
   branch = "master"
-  digest = "1:b6d6dc11f27749f9b66068e2503f8b2dc92e65b28a13a783d0165c1b9bfde6dc"
+  digest = "1:a98800581907fe95209ac98d70833afa0e3bd5215458989a5f8a7b2e657575c2"
   name = "github.com/lastbackend/registry"
   packages = [
+    "pkg/api/client",
+    "pkg/api/client/config",
+    "pkg/api/client/http",
+    "pkg/api/client/http/v1",
+    "pkg/api/client/types",
+    "pkg/api/types/v1/request",
+    "pkg/api/types/v1/views",
     "pkg/distribution/types",
     "pkg/util/generator",
+    "pkg/util/http/request",
+    "pkg/util/serializer",
+    "pkg/util/validator",
   ]
   pruneopts = "UT"
-  revision = "ad35d10a8372fc9eafa48bb0e0baf10506e36100"
+  revision = "3fe6be510fcaa322d94ba6a27dcfb0664b005740"
 
 [[projects]]
   digest = "1:c568d7727aa262c32bdf8a3f7db83614f7af0ed661474b24588de635c20024c7"
@@ -223,7 +233,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "7c1a557ab941a71c619514f229f0b27ccb0c27cf"
+  revision = "0c41d7ab0a0ee717d4590a44bcb987dfd9e183eb"
 
 [[projects]]
   branch = "master"
@@ -236,18 +246,18 @@
     "idna",
   ]
   pruneopts = "UT"
-  revision = "146acd28ed5894421fb5aac80ca93bc1b1f46f87"
+  revision = "04a2e542c03f1d053ab3e4d6e5abcd4b66e2be8e"
 
 [[projects]]
   branch = "master"
-  digest = "1:850d28ab022512e2cd3cf511a77f363c29e22689b4031f2050871f5de47ae4a0"
+  digest = "1:f5aa274a0377f85735edc7fedfb0811d3cbc20af91633797cb359e29c3272271"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "4497e2df6f9e69048a54498c7affbbec3294ad47"
+  revision = "fa43e7bc11baaae89f3f902b2b4d832b68234844"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -289,7 +299,11 @@
     "github.com/lastbackend/lastbackend/pkg/api/types/v1",
     "github.com/lastbackend/lastbackend/pkg/api/types/v1/request",
     "github.com/lastbackend/lastbackend/pkg/api/types/v1/views",
+    "github.com/lastbackend/lastbackend/pkg/distribution/errors",
     "github.com/lastbackend/lastbackend/pkg/distribution/types",
+    "github.com/lastbackend/lastbackend/pkg/log",
+    "github.com/lastbackend/lastbackend/pkg/util/http/request",
+    "github.com/lastbackend/registry/pkg/api/client",
     "github.com/lastbackend/registry/pkg/distribution/types",
     "github.com/mattn/go-runewidth",
     "github.com/spf13/cobra",

@@ -20,7 +20,11 @@ package client
 
 import (
 	"context"
+	"github.com/lastbackend/lastbackend/pkg/distribution/errors"
 	"github.com/lastbackend/lastbackend/pkg/util/http/request"
+
+	rv1 "github.com/lastbackend/cli/pkg/client/genesis/http/v1/request"
+	vv1 "github.com/lastbackend/cli/pkg/client/genesis/http/v1/views"
 )
 
 type AccountClient struct {
@@ -28,8 +32,32 @@ type AccountClient struct {
 }
 
 func (ac *AccountClient) Get(ctx context.Context) error {
-
 	return nil
+}
+
+func (ac *AccountClient) Login(ctx context.Context, opts *rv1.AccountLoginOptions) (*vv1.Session, error) {
+
+	body, err := opts.ToJson()
+	if err != nil {
+		return nil, err
+	}
+
+	var s *vv1.Session
+	var e *errors.Http
+
+	err = ac.client.Post("/session").
+		AddHeader("Content-Type", "application/json").
+		Body(body).
+		JSON(&s, &e)
+
+	if err != nil {
+		return nil, err
+	}
+	if e != nil {
+		return nil, errors.New(e.Message)
+	}
+
+	return s, nil
 }
 
 func newAccountClient(req *request.RESTClient) *AccountClient {

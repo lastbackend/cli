@@ -18,7 +18,11 @@
 
 package types
 
-import "context"
+import (
+	"context"
+	"github.com/lastbackend/cli/pkg/client/genesis/http/v1/request"
+	"github.com/lastbackend/cli/pkg/client/genesis/http/v1/views"
+)
 
 type ClientV1 interface {
 	Account() AccountClientV1
@@ -28,6 +32,7 @@ type ClientV1 interface {
 
 type AccountClientV1 interface {
 	Get(ctx context.Context) error
+	Login(ctx context.Context, opts *request.AccountLoginOptions) (*views.Session, error)
 }
 
 type ClusterClientV1 interface {

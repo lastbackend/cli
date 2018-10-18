@@ -72,7 +72,7 @@ var serviceLogsCmd = &cobra.Command{
 		name := args[1]
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Namespace(namespace).Service(name).Get(envs.Background())
+		response, err := cli.Cluster.V1().Namespace(namespace).Service(name).Get(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -120,7 +120,7 @@ var serviceLogsCmd = &cobra.Command{
 		opts.Pod = m[choice].Pod
 		opts.Container = m[choice].Container
 
-		reader, err := cli.V1().Namespace(namespace).Service(name).Logs(envs.Background(), opts)
+		reader, err := cli.Cluster.V1().Namespace(namespace).Service(name).Logs(envs.Background(), opts)
 		if err != nil {
 			fmt.Println(err)
 			return

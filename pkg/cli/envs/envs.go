@@ -20,8 +20,8 @@ package envs
 
 import (
 	"context"
-	"github.com/lastbackend/cli/pkg/client"
 
+	"github.com/lastbackend/cli/pkg/client"
 	"github.com/lastbackend/cli/pkg/cli/config"
 )
 

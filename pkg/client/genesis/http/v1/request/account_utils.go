@@ -18,7 +18,14 @@
 
 package request
 
-type AccountLoginOptions struct {
-	Login    string `json:"login,omitempty"`
-	Password string `json:"password,omitempty"`
+import "encoding/json"
+
+type AccountRequest struct{}
+
+func (AccountRequest) CreateOptions() *AccountLoginOptions {
+	return new(AccountLoginOptions)
+}
+
+func (o *AccountLoginOptions) ToJson() ([]byte, error) {
+	return json.Marshal(o)
 }

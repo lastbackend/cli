@@ -20,18 +20,23 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/lastbackend/cli/pkg/client/genesis/http/v1/request"
 	"os"
 
+	"github.com/howeyc/gopass"
 	"github.com/lastbackend/cli/pkg/cli/config"
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/cli/pkg/cli/storage"
-	"github.com/lastbackend/lastbackend/pkg/api/client"
+	"github.com/lastbackend/cli/pkg/client"
+	"github.com/lastbackend/cli/pkg/client/genesis"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+
 )
 
 func init() {
 	RootCmd.AddCommand(
+		loginCmd,
+		logoutCmd,
 		clusterCmd,
 		namespaceCmd,
 		routeCmd,
@@ -69,25 +74,42 @@ var RootCmd = &cobra.Command{
 			panic("There is no token in .lastbackend in homedir")
 		}
 
-		host := cmd.Flag("host").Value.String()
+		//host := cmd.Flag("host").Value.String()
+		//if len(host) == 0 {
+		host := "https://api.lastbackend.com"
+		//}
 
-		cfg := client.NewConfig()
+		gcfg := genesis.NewConfig()
+		gcfg.BearerToken = token
 
-		cfg.BearerToken = token
-
-		if viper.IsSet("api.tls") && !viper.GetBool("api.tls.insecure") {
-			cfg.TLS = client.NewTLSConfig()
-			cfg.TLS.CertFile = viper.GetString("api.tls.cert")
-			cfg.TLS.KeyFile = viper.GetString("api.tls.key")
-			cfg.TLS.CAFile = viper.GetString("api.tls.ca")
-		}
-
-		httpcli, err := client.New(client.ClientHTTP, host, cfg)
+		gccli, err := genesis.New(genesis.ClientHTTP, host, gcfg)
 		if err != nil {
 			panic(err)
 		}
 
-		ctx.SetClient(httpcli)
+		//rcfg := registry.NewConfig()
+		//rcfg.BearerToken = token
+		//
+		//cccli, err := cluster.New(cluster.ClientHTTP, host, rcfg)
+		//if err != nil {
+		//	panic(err)
+		//}
+		//
+		//ccfg := cluster.NewConfig()
+		//ccfg.BearerToken = token
+
+		//rccli, err := registry.New(registry.ClientHTTP, host, ccfg)
+		//if err != nil {
+		//	panic(err)
+		//}
+
+		cli := &client.Client{
+			//Cluster:  cccli,
+			//Registry: rccli,
+			Genesis: gccli,
+		}
+
+		ctx.SetClient(cli)
 	},
 }
 
@@ -123,6 +145,67 @@ var namespaceCmd = &cobra.Command{
 
 		ns.Execute()
 
+	},
+}
+
+var loginCmd = &cobra.Command{
+	Use:   "login",
+	Short: "Log in to a Last.Backend",
+	Example: `
+  # Log in to a Last.Backend 
+  lb login
+  Login: username
+  Password: ******"`,
+	Run: func(cmd *cobra.Command, args []string) {
+		var (
+			login    string
+			password string
+		)
+
+		fmt.Print("Login: ")
+		fmt.Scan(&login)
+
+		fmt.Print("Password: ")
+		pass, err := gopass.GetPasswd()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		password = string(pass)
+
+		fmt.Print("\r\n")
+
+		cli := envs.Get().GetClient()
+
+		opts := &request.AccountLoginOptions{
+			Login:    login,
+			Password: password,
+		}
+
+		session, err := cli.Genesis.V1().Account().Login(envs.Background(), opts)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		if err := storage.SetToken(session.Token); err != nil {
+			fmt.Println(err)
+			return
+		}
+	},
+}
+
+var logoutCmd = &cobra.Command{
+	Use:   "logout",
+	Short: "Log out from a Last.Backend",
+	Example: `
+  # Log out from a Last.Backend 
+  lb logout"`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := storage.SetToken(""); err != nil {
+			fmt.Println(err)
+			return
+		}
 	},
 }
 
@@ -212,6 +295,7 @@ func Execute() {
 	cobra.OnInitialize()
 
 	RootCmd.PersistentFlags().StringP("host", "H", "https://api.lastbackend.com", "Set api host parameter")
+	RootCmd.PersistentFlags().Bool("local", false, "Set api host for local cluster")
 	RootCmd.PersistentFlags().Bool("debug", false, "Enable debug mode")
 	RootCmd.PersistentFlags().Bool("insecure", false, "Disable security check")
 

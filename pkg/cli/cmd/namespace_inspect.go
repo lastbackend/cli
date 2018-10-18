@@ -45,7 +45,7 @@ var namespaceInspectCmd = &cobra.Command{
 		namespace := args[0]
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Namespace(namespace).Get(envs.Background())
+		response, err := cli.Cluster.V1().Namespace(namespace).Get(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return

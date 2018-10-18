@@ -45,7 +45,7 @@ var discoveryInspectCmd = &cobra.Command{
 		name := args[0]
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Cluster().Discovery(name).Get(envs.Background())
+		response, err := cli.Cluster.V1().Cluster().Discovery(name).Get(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return

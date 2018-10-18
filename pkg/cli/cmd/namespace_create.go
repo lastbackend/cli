@@ -55,7 +55,7 @@ var namespaceCreateCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Namespace().Create(envs.Background(), opts)
+		response, err := cli.Cluster.V1().Namespace().Create(envs.Background(), opts)
 		if err != nil {
 			fmt.Println(err)
 			return

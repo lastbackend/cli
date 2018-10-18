@@ -19,20 +19,25 @@
 package storage
 
 import (
-	"fmt"
+	"os"
+	"strings"
 
 	"github.com/lastbackend/cli/pkg/util/filesystem"
 )
 
-var path = fmt.Sprintf("%s/.lastbackend/token", filesystem.HomeDir())
+var path = strings.Join([]string{filesystem.HomeDir(), ".lastbackend"}, string(os.PathSeparator))
+var filepath = strings.Join([]string{path, "token"}, string(os.PathSeparator))
 
 func SetToken(token string) error {
-	return filesystem.WriteStrToFile(path, token, 0644)
+	err := os.MkdirAll(path, 755)
+	if err != nil {
+		return err
+	}
+	return filesystem.WriteStrToFile(filepath, token, 0644)
 }
 
 func GetToken() (string, error) {
-
-	buf, err := filesystem.ReadFile(path)
+	buf, err := filesystem.ReadFile(filepath)
 	if err != nil {
 		return "", err
 	}
