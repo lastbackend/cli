@@ -19,12 +19,13 @@
 package view
 
 import (
+	gv "github.com/lastbackend/cli/pkg/client/genesis/http/v1/views"
 	"github.com/lastbackend/cli/pkg/util/table"
-	"github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
+	lv "github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
 )
 
 type ClusterList []*Cluster
-type Cluster views.Cluster
+type Cluster lv.Cluster
 
 func (cl *ClusterList) Print() {
 
@@ -44,8 +45,18 @@ func (cl *ClusterList) Print() {
 	println()
 }
 
-func FromApiClusterListView(clusters *views.ClusterList) *ClusterList {
+func FromGenesisApiClusterListView(clusters *gv.ClusterList) *ClusterList {
+	var items = make(ClusterList, 0)
+	for _, cluster := range *clusters {
+		c := &lv.Cluster{}
+		c.Meta.Name = cluster.Meta.Name
+		c.Meta.Description = cluster.Meta.Description
+		items = append(items, FromApiClusterView(c))
+	}
+	return &items
+}
 
+func FromApiClusterListView(clusters *lv.ClusterList) *ClusterList {
 	var items = make(ClusterList, 0)
 	for _, cluster := range *clusters {
 		items = append(items, FromApiClusterView(cluster))
@@ -54,7 +65,6 @@ func FromApiClusterListView(clusters *views.ClusterList) *ClusterList {
 }
 
 func (c *Cluster) Print() {
-
 	println()
 	table.PrintHorizontal(map[string]interface{}{
 		"NAME":        c.Meta.Name,
@@ -63,7 +73,7 @@ func (c *Cluster) Print() {
 	println()
 }
 
-func FromApiClusterView(cluster *views.Cluster) *Cluster {
+func FromApiClusterView(cluster *lv.Cluster) *Cluster {
 
 	if cluster == nil {
 		return nil

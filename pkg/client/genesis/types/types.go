@@ -36,7 +36,8 @@ type AccountClientV1 interface {
 }
 
 type ClusterClientV1 interface {
-	List(ctx context.Context) error
+	Get(ctx context.Context, name string) (*views.ClusterView, error)
+	List(ctx context.Context) (*views.ClusterList, error)
 }
 
 type RegistryClientV1 interface {

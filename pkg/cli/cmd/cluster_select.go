@@ -20,61 +20,71 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/lastbackend/cli/pkg/cli/view"
-
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/cli/pkg/cli/storage"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	clusterCmd.AddCommand(ClusterListCmd)
+	ClusterSelectCmd.Flags().Bool("local", false, "Use local cluster")
+	clusterCmd.AddCommand(ClusterSelectCmd)
 }
 
-const clusterListExample = `
+const clusterSelectExample = `
   # Get information about cluster 
-  lb cluster ls
+  lb cluster select name
 `
 
-var ClusterListCmd = &cobra.Command{
-	Use:     "ls",
-	Short:   "Get available cluster list",
-	Example: clusterListExample,
-	Args:    cobra.NoArgs,
+var ClusterSelectCmd = &cobra.Command{
+	Use:     "select [NAME]",
+	Short:   "Select cluster",
+	Example: clusterSelectExample,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return cmd.Help()
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
+		name := args[0]
 
-		fmt.Println("Remotely clusters list:")
+		// Select local cluster
+		local, _ := cmd.Flags().GetBool("local")
+		if local {
+			items, err := storage.ListLocalCluster()
+			if err != nil {
+				panic(err)
+			}
 
+			if e, ok := items[name]; !ok {
+				fmt.Println(fmt.Sprintf("Cluster `%s` not found", name))
+			} else {
+				err = storage.SetCluster(name, e, true)
+				if err != nil {
+					panic(err)
+				}
+			}
+
+			return
+		}
+
+		// Select remove cluster
 		cli := envs.Get().GetClient()
 
-		ritems, err := cli.Genesis.V1().Cluster().List(envs.Background())
+		cl, err := cli.Genesis.V1().Cluster().Get(envs.Background(), name)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		if ritems != nil {
-			if len(*ritems) == 0 {
-				fmt.Println("no clusters available")
-			} else {
-				cluster := view.FromGenesisApiClusterListView(ritems)
-				cluster.Print()
-			}
+
+		if cl == nil {
+			fmt.Println(fmt.Sprintf("Cluster `%s` not found", name))
+			return
 		}
 
-		fmt.Print("\n")
-		fmt.Println("Locally clusters list:")
-
-		litems, err := storage.ListLocalCluster()
+		err = storage.SetCluster(name, "", false)
 		if err != nil {
 			panic(err)
 		}
-
-		if len(litems) == 0 {
-			fmt.Println("no clusters available")
-		} else {
-			fmt.Println(litems)
-		}
-
-		// TODO print local clusters
 	},
 }

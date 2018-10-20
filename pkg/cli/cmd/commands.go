@@ -20,18 +20,20 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/lastbackend/cli/pkg/client/genesis/http/v1/request"
 	"os"
+	"strings"
 
 	"github.com/howeyc/gopass"
 	"github.com/lastbackend/cli/pkg/cli/config"
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/cli/pkg/cli/storage"
 	"github.com/lastbackend/cli/pkg/client"
-	"github.com/lastbackend/cli/pkg/client/genesis"
+	"github.com/lastbackend/cli/pkg/client/genesis/http/v1/request"
+	"github.com/lastbackend/cli/pkg/util/filesystem"
 	"github.com/spf13/cobra"
-
 )
+
+const defaultHost = "https://api.lastbackend.com"
 
 func init() {
 	RootCmd.AddCommand(
@@ -44,7 +46,6 @@ func init() {
 		secretCmd,
 		configCmd,
 		volumeCmd,
-		tokenCmd,
 		versionCmd,
 		nodeCmd,
 		ingressCmd,
@@ -62,11 +63,12 @@ var RootCmd = &cobra.Command{
 	Short: "Apps cloud hosting with integrated deployment tools",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 
-		debug, _ := cmd.Flags().GetBool("debug")
+		var err error
 
-		if debug {
-			fmt.Println("debug mode enabled")
-			cfg.Debug = debug
+		cfg.Cluster = cmd.Flag("cluster").Value.String()
+		cfg.Debug, err = cmd.Flags().GetBool("debug")
+		if err != nil {
+			panic("Invalid debug flag")
 		}
 
 		token, err := storage.GetToken()
@@ -74,40 +76,44 @@ var RootCmd = &cobra.Command{
 			panic("There is no token in .lastbackend in homedir")
 		}
 
-		//host := cmd.Flag("host").Value.String()
-		//if len(host) == 0 {
-		host := "https://api.lastbackend.com"
-		//}
+		host := defaultHost
+		config := &client.Config{Token: token}
 
-		gcfg := genesis.NewConfig()
-		gcfg.BearerToken = token
-
-		gccli, err := genesis.New(genesis.ClientHTTP, host, gcfg)
+		tls, err := cmd.Flags().GetBool("tls")
 		if err != nil {
-			panic(err)
+			panic("Invalid tls flag")
+		}
+		if tls {
+			config.TLS.Insecure = false
+			config.TLS.CAFile = cmd.Flag("tlscacert").Value.String()
+			config.TLS.CertFile = cmd.Flag("tlscert").Value.String()
+			config.TLS.KeyFile = cmd.Flag("tlskey").Value.String()
 		}
 
-		//rcfg := registry.NewConfig()
-		//rcfg.BearerToken = token
-		//
-		//cccli, err := cluster.New(cluster.ClientHTTP, host, rcfg)
-		//if err != nil {
-		//	panic(err)
-		//}
-		//
-		//ccfg := cluster.NewConfig()
-		//ccfg.BearerToken = token
+		cli := &client.Client{}
+		cli.Genesis = client.NewGenesisClister(host, config)
+		cli.Registry = client.NewRegistryClient(host, config)
 
-		//rccli, err := registry.New(registry.ClientHTTP, host, ccfg)
-		//if err != nil {
-		//	panic(err)
-		//}
+		endpoint := cmd.Flag("cluster").Value.String()
+		if len(endpoint) != 0 {
+			host = endpoint
+		} else {
 
-		cli := &client.Client{
-			//Cluster:  cccli,
-			//Registry: rccli,
-			Genesis: gccli,
+			cluster, err := storage.GetCluster()
+			if err != nil {
+				panic(err)
+			}
+
+			if cluster != nil {
+				if cluster.Local {
+					host = cluster.Endpoint
+				} else {
+					config.Headers["X-Cluster-Name"] = cluster.Name
+				}
+			}
 		}
+
+		cli.Cluster = client.NewClusterClient(host, config)
 
 		ctx.SetClient(cli)
 	},
@@ -157,6 +163,7 @@ var loginCmd = &cobra.Command{
   Login: username
   Password: ******"`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		var (
 			login    string
 			password string
@@ -164,7 +171,6 @@ var loginCmd = &cobra.Command{
 
 		fmt.Print("Login: ")
 		fmt.Scan(&login)
-
 		fmt.Print("Password: ")
 		pass, err := gopass.GetPasswd()
 		if err != nil {
@@ -172,7 +178,6 @@ var loginCmd = &cobra.Command{
 			return
 		}
 		password = string(pass)
-
 		fmt.Print("\r\n")
 
 		cli := envs.Get().GetClient()
@@ -192,6 +197,8 @@ var loginCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
+
+		fmt.Println("Authorization successful!")
 	},
 }
 
@@ -257,14 +264,6 @@ var clusterCmd = &cobra.Command{
 	},
 }
 
-var tokenCmd = &cobra.Command{
-	Use:   "token",
-	Short: "Manage set vars to your local storage",
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
-	},
-}
-
 var nodeCmd = &cobra.Command{
 	Use:   "node",
 	Short: "Manage cluster nodes",
@@ -294,10 +293,16 @@ func Execute() {
 
 	cobra.OnInitialize()
 
-	RootCmd.PersistentFlags().StringP("host", "H", "https://api.lastbackend.com", "Set api host parameter")
-	RootCmd.PersistentFlags().Bool("local", false, "Set api host for local cluster")
+	var getSSLPath = func(filepath string) string {
+		return strings.Join([]string{filesystem.HomeDir(), ".lastbackend", filepath}, string(os.PathSeparator))
+	}
+
+	RootCmd.PersistentFlags().StringP("cluster", "C", "", "Use cluster for operations")
 	RootCmd.PersistentFlags().Bool("debug", false, "Enable debug mode")
-	RootCmd.PersistentFlags().Bool("insecure", false, "Disable security check")
+	RootCmd.PersistentFlags().Bool("tls", false, "Use TLS")
+	RootCmd.PersistentFlags().String("tlscacert", getSSLPath("ca.pem"), fmt.Sprintf("Trust certs signed only by this CA (default \"%s\")", getSSLPath("ca.pem")))
+	RootCmd.PersistentFlags().String("tlscert", getSSLPath("cert.pem"), fmt.Sprintf("Path to TLS certificate file (default \"%s\")", getSSLPath("cert.pem")))
+	RootCmd.PersistentFlags().String("tlskey", getSSLPath("key.pem"), fmt.Sprintf("Path to TLS key file (default \"%s\")", getSSLPath("key.pem")))
 
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)

@@ -19,35 +19,40 @@
 package cmd
 
 import (
-	"fmt"
-
+	"errors"
 	"github.com/lastbackend/cli/pkg/cli/storage"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	tokenCmd.AddCommand(tokenSetCmd)
+	ClusterDelCmd.Flags().Bool("local", false, "Use local cluster")
+	clusterCmd.AddCommand(ClusterDelCmd)
 }
 
-const tokenSetExample = `
-  # Set auth token for request quest in API 
-  lb token set e3865d9b52c34dd4b6ec.5cff8c8e4cf6
+const clusterDelExample = `
+  # Get information about cluster 
+  lb cluster del name --local
 `
 
-var tokenSetCmd = &cobra.Command{
-	Use:     "token [DATA]",
-	Short:   "Set token to local storage",
-	Example: tokenSetExample,
+var ClusterDelCmd = &cobra.Command{
+	Use:     "del [NAME]",
+	Short:   "Remove cluster",
+	Example: clusterDelExample,
 	Args:    cobra.ExactArgs(1),
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		local, _ := cmd.Flags().GetBool("local")
+		if !local {
+			return errors.New("method allowed with local flag")
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
+		name := args[0]
 
-		token := args[0]
-
-		if err := storage.SetToken(token); err != nil {
-			fmt.Println(err)
-			return
+		err := storage.DelLocalCluster(name)
+		if err != nil {
+			panic(err)
 		}
 
-		fmt.Println("Token successfully setted")
 	},
 }
