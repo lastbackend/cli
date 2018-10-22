@@ -39,13 +39,14 @@ var ClusterSelectCmd = &cobra.Command{
 	Use:     "select [NAME]",
 	Short:   "Select cluster",
 	Example: clusterSelectExample,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return cmd.Help()
 		}
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+
 		name := args[0]
 
 		// Select local cluster

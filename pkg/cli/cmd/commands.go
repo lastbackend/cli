@@ -66,6 +66,7 @@ var RootCmd = &cobra.Command{
 		var err error
 
 		cfg.Cluster = cmd.Flag("cluster").Value.String()
+
 		cfg.Debug, err = cmd.Flags().GetBool("debug")
 		if err != nil {
 			panic("Invalid debug flag")
@@ -83,6 +84,7 @@ var RootCmd = &cobra.Command{
 		if err != nil {
 			panic("Invalid tls flag")
 		}
+
 		if tls {
 			config.TLS.Insecure = false
 			config.TLS.CAFile = cmd.Flag("tlscacert").Value.String()

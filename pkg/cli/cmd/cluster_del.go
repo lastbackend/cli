@@ -39,7 +39,7 @@ var ClusterDelCmd = &cobra.Command{
 	Short:   "Remove cluster",
 	Example: clusterDelExample,
 	Args:    cobra.ExactArgs(1),
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		local, _ := cmd.Flags().GetBool("local")
 		if !local {
 			return errors.New("method allowed with local flag")

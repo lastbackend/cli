@@ -159,5 +159,5 @@ func GetCluster() (*Cluster, error) {
 		return nil, err
 	}
 
-	return nil, nil
+	return res, nil
 }
