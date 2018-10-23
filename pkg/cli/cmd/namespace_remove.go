@@ -51,7 +51,7 @@ var namespaceRemoveCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		cli.V1().Namespace(namespace).Remove(envs.Background(), opts)
+		cli.Cluster.V1().Namespace(namespace).Remove(envs.Background(), opts)
 
 		fmt.Println(fmt.Sprintf("Namespace `%s` is successfully removed", namespace))
 	},

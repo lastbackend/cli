@@ -173,7 +173,7 @@ var serviceCreateCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Namespace(namespace).Service().Create(envs.Background(), opts)
+		response, err := cli.Cluster.V1().Namespace(namespace).Service().Create(envs.Background(), opts)
 		if err != nil {
 			fmt.Println(err)
 			return

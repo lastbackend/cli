@@ -55,7 +55,7 @@ var routeUpdateCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Namespace(namespace).Route(name).Update(envs.Background(), opts)
+		response, err := cli.Cluster.V1().Namespace(namespace).Route(name).Update(envs.Background(), opts)
 		if err != nil {
 			fmt.Println(err)
 			return

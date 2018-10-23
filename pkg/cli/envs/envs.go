@@ -22,7 +22,7 @@ import (
 	"context"
 
 	"github.com/lastbackend/cli/pkg/cli/config"
-	"github.com/lastbackend/lastbackend/pkg/api/client"
+	"github.com/lastbackend/cli/pkg/client"
 )
 
 var _ctx ctx
@@ -42,16 +42,16 @@ func Mock() *ctx {
 
 type ctx struct {
 	config *config.Config
-	client client.IClient
+	client *client.Client
 	token  *string
 	mock   bool
 }
 
-func (c *ctx) SetClient(client client.IClient) {
+func (c *ctx) SetClient(client *client.Client) {
 	c.client = client
 }
 
-func (c *ctx) GetClient() client.IClient {
+func (c *ctx) GetClient() *client.Client {
 	return c.client
 }
 

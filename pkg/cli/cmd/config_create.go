@@ -108,7 +108,7 @@ var configCreateCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Namespace(namespace).Config().Create(envs.Background(), opts)
+		response, err := cli.Cluster.V1().Namespace(namespace).Config().Create(envs.Background(), opts)
 		if err != nil {
 			fmt.Println(err)
 			return

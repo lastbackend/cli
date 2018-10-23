@@ -44,7 +44,7 @@ var ClusterInspectCmd = &cobra.Command{
 
 		cli := envs.Get().GetClient()
 
-		response, err := cli.V1().Cluster().Get(envs.Background())
+		response, err := cli.Cluster.V1().Cluster().Get(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return
