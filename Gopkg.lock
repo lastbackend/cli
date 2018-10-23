@@ -53,6 +53,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:0778dc7fce1b4669a8bfa7ae506ec1f595b6ab0f8989c1c0d22a8ca1144e9972"
+  name = "github.com/howeyc/gopass"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "bf9dde6d0d2c004a008c27aaee91170c786f6db8"
+
+[[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
@@ -70,7 +78,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ddb95b5ca44699dc5b412071cdf403766647abd28da2c89e8e4f3d1dc02d712a"
+  digest = "1:9e4266ee624baccaa0357f7a505748ab0814e6913bf02cb3fd9d4c01f150962d"
   name = "github.com/lastbackend/lastbackend"
   packages = [
     "pkg/api/client",
@@ -93,7 +101,7 @@
     "pkg/util/validator",
   ]
   pruneopts = "UT"
-  revision = "6721662400968678233db303548513d382b304eb"
+  revision = "34d4054139ee753c03c1b8320b10dae70f28a63d"
 
 [[projects]]
   branch = "master"
@@ -246,18 +254,18 @@
     "idna",
   ]
   pruneopts = "UT"
-  revision = "04a2e542c03f1d053ab3e4d6e5abcd4b66e2be8e"
+  revision = "9b4f9f5ad5197c79fd623a3638e70d8b26cef344"
 
 [[projects]]
   branch = "master"
-  digest = "1:f5aa274a0377f85735edc7fedfb0811d3cbc20af91633797cb359e29c3272271"
+  digest = "1:899c684138eb2844811b7f97e264d3c65d533dbedc59549fa58fc2bf316f83a1"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "fa43e7bc11baaae89f3f902b2b4d832b68234844"
+  revision = "44b849a8bc13eb42e95e6c6c5e360481b73ec710"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -295,6 +303,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/ararog/timeago",
+    "github.com/howeyc/gopass",
     "github.com/lastbackend/lastbackend/pkg/api/client",
     "github.com/lastbackend/lastbackend/pkg/api/types/v1",
     "github.com/lastbackend/lastbackend/pkg/api/types/v1/request",
@@ -306,8 +315,8 @@
     "github.com/lastbackend/registry/pkg/api/client",
     "github.com/lastbackend/registry/pkg/distribution/types",
     "github.com/mattn/go-runewidth",
+    "github.com/pkg/errors",
     "github.com/spf13/cobra",
-    "github.com/spf13/viper",
     "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"
