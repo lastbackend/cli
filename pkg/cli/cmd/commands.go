@@ -21,17 +21,24 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/howeyc/gopass"
 	"github.com/lastbackend/cli/pkg/cli/config"
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/cli/pkg/cli/storage"
-	"github.com/lastbackend/lastbackend/pkg/api/client"
+	"github.com/lastbackend/cli/pkg/client"
+	"github.com/lastbackend/cli/pkg/client/genesis/http/v1/request"
+	"github.com/lastbackend/cli/pkg/util/filesystem"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
+
+const defaultHost = "https://api.lastbackend.com"
 
 func init() {
 	RootCmd.AddCommand(
+		loginCmd,
+		logoutCmd,
 		clusterCmd,
 		namespaceCmd,
 		routeCmd,
@@ -39,7 +46,6 @@ func init() {
 		secretCmd,
 		configCmd,
 		volumeCmd,
-		tokenCmd,
 		versionCmd,
 		nodeCmd,
 		ingressCmd,
@@ -57,11 +63,13 @@ var RootCmd = &cobra.Command{
 	Short: "Apps cloud hosting with integrated deployment tools",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 
-		debug, _ := cmd.Flags().GetBool("debug")
+		var err error
 
-		if debug {
-			fmt.Println("debug mode enabled")
-			cfg.Debug = debug
+		cfg.Cluster = cmd.Flag("cluster").Value.String()
+
+		cfg.Debug, err = cmd.Flags().GetBool("debug")
+		if err != nil {
+			panic("Invalid debug flag")
 		}
 
 		token, err := storage.GetToken()
@@ -69,25 +77,47 @@ var RootCmd = &cobra.Command{
 			panic("There is no token in .lastbackend in homedir")
 		}
 
-		host := cmd.Flag("host").Value.String()
+		host := defaultHost
+		config := &client.Config{Token: token}
 
-		cfg := client.NewConfig()
-
-		cfg.BearerToken = token
-
-		if viper.IsSet("api.tls") && !viper.GetBool("api.tls.insecure") {
-			cfg.TLS = client.NewTLSConfig()
-			cfg.TLS.CertFile = viper.GetString("api.tls.cert")
-			cfg.TLS.KeyFile = viper.GetString("api.tls.key")
-			cfg.TLS.CAFile = viper.GetString("api.tls.ca")
-		}
-
-		httpcli, err := client.New(client.ClientHTTP, host, cfg)
+		tls, err := cmd.Flags().GetBool("tls")
 		if err != nil {
-			panic(err)
+			panic("Invalid tls flag")
 		}
 
-		ctx.SetClient(httpcli)
+		if tls {
+			config.TLS.Insecure = false
+			config.TLS.CAFile = cmd.Flag("tlscacert").Value.String()
+			config.TLS.CertFile = cmd.Flag("tlscert").Value.String()
+			config.TLS.KeyFile = cmd.Flag("tlskey").Value.String()
+		}
+
+		cli := &client.Client{}
+		cli.Genesis = client.NewGenesisClister(host, config)
+		cli.Registry = client.NewRegistryClient(host, config)
+
+		endpoint := cmd.Flag("cluster").Value.String()
+		if len(endpoint) != 0 {
+			host = endpoint
+		} else {
+
+			cluster, err := storage.GetCluster()
+			if err != nil {
+				panic(err)
+			}
+
+			if cluster != nil {
+				if cluster.Local {
+					host = cluster.Endpoint
+				} else {
+					config.Headers["X-Cluster-Name"] = cluster.Name
+				}
+			}
+		}
+
+		cli.Cluster = client.NewClusterClient(host, config)
+
+		ctx.SetClient(cli)
 	},
 }
 
@@ -123,6 +153,68 @@ var namespaceCmd = &cobra.Command{
 
 		ns.Execute()
 
+	},
+}
+
+var loginCmd = &cobra.Command{
+	Use:   "login",
+	Short: "Log in to a Last.Backend",
+	Example: `
+  # Log in to a Last.Backend 
+  lb login
+  Login: username
+  Password: ******"`,
+	Run: func(cmd *cobra.Command, args []string) {
+
+		var (
+			login    string
+			password string
+		)
+
+		fmt.Print("Login: ")
+		fmt.Scan(&login)
+		fmt.Print("Password: ")
+		pass, err := gopass.GetPasswd()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		password = string(pass)
+		fmt.Print("\r\n")
+
+		cli := envs.Get().GetClient()
+
+		opts := &request.AccountLoginOptions{
+			Login:    login,
+			Password: password,
+		}
+
+		session, err := cli.Genesis.V1().Account().Login(envs.Background(), opts)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		if err := storage.SetToken(session.Token); err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println("Authorization successful!")
+	},
+}
+
+var logoutCmd = &cobra.Command{
+	Use:   "logout",
+	Short: "Log out from a Last.Backend",
+	Example: `
+  # Log out from a Last.Backend 
+  lb logout"`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := storage.SetToken(""); err != nil {
+			fmt.Println(err)
+			return
+		}
 	},
 }
 
@@ -174,14 +266,6 @@ var clusterCmd = &cobra.Command{
 	},
 }
 
-var tokenCmd = &cobra.Command{
-	Use:   "token",
-	Short: "Manage set vars to your local storage",
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
-	},
-}
-
 var nodeCmd = &cobra.Command{
 	Use:   "node",
 	Short: "Manage cluster nodes",
@@ -211,9 +295,16 @@ func Execute() {
 
 	cobra.OnInitialize()
 
-	RootCmd.PersistentFlags().StringP("host", "H", "https://api.lastbackend.com", "Set api host parameter")
+	var getSSLPath = func(filepath string) string {
+		return strings.Join([]string{filesystem.HomeDir(), ".lastbackend", filepath}, string(os.PathSeparator))
+	}
+
+	RootCmd.PersistentFlags().StringP("cluster", "C", "", "Use cluster for operations")
 	RootCmd.PersistentFlags().Bool("debug", false, "Enable debug mode")
-	RootCmd.PersistentFlags().Bool("insecure", false, "Disable security check")
+	RootCmd.PersistentFlags().Bool("tls", false, "Use TLS")
+	RootCmd.PersistentFlags().String("tlscacert", getSSLPath("ca.pem"), fmt.Sprintf("Trust certs signed only by this CA (default \"%s\")", getSSLPath("ca.pem")))
+	RootCmd.PersistentFlags().String("tlscert", getSSLPath("cert.pem"), fmt.Sprintf("Path to TLS certificate file (default \"%s\")", getSSLPath("cert.pem")))
+	RootCmd.PersistentFlags().String("tlskey", getSSLPath("key.pem"), fmt.Sprintf("Path to TLS key file (default \"%s\")", getSSLPath("key.pem")))
 
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)

@@ -20,9 +20,9 @@ package envs
 
 import (
 	"context"
-	"github.com/lastbackend/cli/pkg/client"
 
 	"github.com/lastbackend/cli/pkg/cli/config"
+	"github.com/lastbackend/cli/pkg/client"
 )
 
 var _ctx ctx

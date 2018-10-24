@@ -20,6 +20,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"github.com/lastbackend/cli/pkg/client/genesis/http/v1/views"
 	"github.com/lastbackend/lastbackend/pkg/distribution/errors"
 	"github.com/lastbackend/lastbackend/pkg/util/http/request"
@@ -29,7 +30,26 @@ type ClusterClient struct {
 	client *request.RESTClient
 }
 
-func (cc *ClusterClient) List(ctx context.Context) error {
+func (cc *ClusterClient) Get(ctx context.Context, name string) (*views.ClusterView, error) {
+
+	var s *views.ClusterView
+	var e *errors.Http
+
+	err := cc.client.Get(fmt.Sprintf("/cluster/%s", name)).
+		AddHeader("Content-Type", "application/json").
+		JSON(&s, &e)
+
+	if err != nil {
+		return nil, err
+	}
+	if e != nil {
+		return nil, errors.New(e.Message)
+	}
+
+	return s, nil
+}
+
+func (cc *ClusterClient) List(ctx context.Context) (*views.ClusterList, error) {
 
 	var s *views.ClusterList
 	var e *errors.Http
@@ -39,13 +59,18 @@ func (cc *ClusterClient) List(ctx context.Context) error {
 		JSON(&s, &e)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if e != nil {
-		return errors.New(e.Message)
+		return nil, errors.New(e.Message)
 	}
 
-	return nil
+	if s == nil {
+		list := make(views.ClusterList, 0)
+		s = &list
+	}
+
+	return s, nil
 }
 
 func newClusterClient(req *request.RESTClient) *ClusterClient {

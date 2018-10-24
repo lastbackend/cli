@@ -24,6 +24,8 @@ import "github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
 // ClusterList is a list of cluster models for api
 //
 // swagger:model views_cluster_list
-type ClusterList []*views.Cluster
+type ClusterList []*ClusterView
 
-type ClusterView struct{}
+type ClusterView struct {
+	views.Cluster
+}

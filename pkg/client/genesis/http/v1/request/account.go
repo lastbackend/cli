@@ -18,4 +18,7 @@
 
 package request
 
-type AccountRequest struct{}
+type AccountLoginOptions struct {
+	Login    string `json:"login,omitempty"`
+	Password string `json:"password,omitempty"`
+}

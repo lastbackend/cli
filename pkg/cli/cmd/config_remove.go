@@ -53,7 +53,7 @@ var configRemoveCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		cli.V1().Namespace(namespace).Config(name).Remove(envs.Background(), opts)
+		cli.Cluster.V1().Namespace(namespace).Config(name).Remove(envs.Background(), opts)
 
 		fmt.Println(fmt.Sprintf("Config `%s` remove now", name))
 	},

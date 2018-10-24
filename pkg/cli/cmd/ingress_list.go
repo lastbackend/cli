@@ -42,7 +42,7 @@ var ingressListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Cluster().Ingress().List(envs.Background())
+		response, err := cli.Cluster.V1().Cluster().Ingress().List(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return

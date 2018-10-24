@@ -16,38 +16,16 @@
 // from Last.Backend LLC.
 //
 
-package cmd
+package request
 
-import (
-	"fmt"
+import "encoding/json"
 
-	"github.com/lastbackend/cli/pkg/cli/storage"
-	"github.com/spf13/cobra"
-)
+type AccountRequest struct{}
 
-func init() {
-	tokenCmd.AddCommand(tokenSetCmd)
+func (AccountRequest) CreateOptions() *AccountLoginOptions {
+	return new(AccountLoginOptions)
 }
 
-const tokenSetExample = `
-  # Set auth token for request quest in API 
-  lb token set e3865d9b52c34dd4b6ec.5cff8c8e4cf6
-`
-
-var tokenSetCmd = &cobra.Command{
-	Use:     "token [DATA]",
-	Short:   "Set token to local storage",
-	Example: tokenSetExample,
-	Args:    cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-
-		token := args[0]
-
-		if err := storage.SetToken(token); err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		fmt.Println("Token successfully setted")
-	},
+func (o *AccountLoginOptions) ToJson() ([]byte, error) {
+	return json.Marshal(o)
 }

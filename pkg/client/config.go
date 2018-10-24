@@ -16,24 +16,12 @@
 // from Last.Backend LLC.
 //
 
-package config
-
-import "time"
-
-const (
-	defaultTimeout = 10
-)
+package client
 
 type Config struct {
-	BearerToken string
-	Timeout     time.Duration
-	TLS         *TLSConfig
-}
-
-func (c Config) getDefault() *Config {
-	cfg := new(Config)
-	cfg.Timeout = defaultTimeout
-	return cfg
+	Token   string
+	TLS     *TLSConfig
+	Headers map[string]string
 }
 
 // TLSConfig contains settings to enable transport layer security

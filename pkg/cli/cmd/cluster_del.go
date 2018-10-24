@@ -19,40 +19,40 @@
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/cli/pkg/cli/view"
+	"errors"
+	"github.com/lastbackend/cli/pkg/cli/storage"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	routeCmd.AddCommand(routeInspectCmd)
+	ClusterDelCmd.Flags().Bool("local", false, "Use local cluster")
+	clusterCmd.AddCommand(ClusterDelCmd)
 }
 
-const routeInspectExample = `
-  # Get information 'wef34fg' for route in 'ns-demo' namespace
-  lb route inspect ns-demo wef34fg"
+const clusterDelExample = `
+  # Get information about cluster 
+  lb cluster del name --local
 `
 
-var routeInspectCmd = &cobra.Command{
-	Use:     "inspect [NAMESPACE] [NAME]",
-	Short:   "Route info by name",
-	Example: routeInspectExample,
-	Args:    cobra.ExactArgs(2),
+var ClusterDelCmd = &cobra.Command{
+	Use:     "del [NAME]",
+	Short:   "Remove cluster",
+	Example: clusterDelExample,
+	Args:    cobra.ExactArgs(1),
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		local, _ := cmd.Flags().GetBool("local")
+		if !local {
+			return errors.New("method allowed with local flag")
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
+		name := args[0]
 
-		namespace := args[0]
-		name := args[1]
-
-		cli := envs.Get().GetClient()
-		response, err := cli.Cluster.V1().Namespace(namespace).Route(name).Get(envs.Background())
+		err := storage.DelLocalCluster(name)
 		if err != nil {
-			fmt.Println(err)
-			return
+			panic(err)
 		}
 
-		ss := view.FromApiRouteView(response)
-		ss.Print()
 	},
 }

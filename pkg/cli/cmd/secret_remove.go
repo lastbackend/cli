@@ -53,7 +53,7 @@ var secretRemoveCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		cli.V1().Namespace(namespace).Secret(name).Remove(envs.Background(), opts)
+		cli.Cluster.V1().Namespace(namespace).Secret(name).Remove(envs.Background(), opts)
 
 		fmt.Println(fmt.Sprintf("Secret `%s` remove now", name))
 	},

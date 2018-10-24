@@ -19,6 +19,15 @@
 package request
 
 type IRequest interface {
+	Account() *AccountRequest
 }
 
 type Request struct{}
+
+func New() *Request {
+	return new(Request)
+}
+
+func (Request) Account() *AccountRequest {
+	return new(AccountRequest)
+}

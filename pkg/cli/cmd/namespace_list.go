@@ -43,7 +43,7 @@ var namespaceListCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, _ []string) {
 
 		cli := envs.Get().GetClient()
-		response, err := cli.V1().Namespace().List(envs.Background())
+		response, err := cli.Cluster.V1().Namespace().List(envs.Background())
 
 		if err != nil {
 			fmt.Println(err)

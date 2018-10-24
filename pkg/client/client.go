@@ -29,3 +29,91 @@ type Client struct {
 	Cluster  cc.IClient
 	Registry rc.IClient
 }
+
+func NewGenesisClister(host string, config *Config) gc.IClient {
+
+	if config == nil {
+		config = new(Config)
+	}
+
+	cfg := gc.NewConfig()
+
+	cfg.BearerToken = config.Token
+
+	if config.TLS != nil {
+		cfg.TLS.CertFile = config.TLS.CAFile
+		cfg.TLS.KeyFile = config.TLS.KeyFile
+		cfg.TLS.CAFile = config.TLS.CAFile
+		cfg.TLS.CertData = config.TLS.CertData
+		cfg.TLS.KeyData = config.TLS.KeyData
+		cfg.TLS.CAData = config.TLS.CAData
+	}
+
+	cli, err := gc.New(gc.ClientHTTP, host, cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	return cli
+}
+
+func NewClusterClient(host string, config *Config) cc.IClient {
+
+	if config == nil {
+		config = new(Config)
+	}
+
+	cfg := cc.NewConfig()
+
+	if config.Headers != nil {
+		cfg.Headers = make(map[string]string, 0)
+		for k, v := range config.Headers {
+			cfg.Headers[k] = v
+		}
+	}
+
+	cfg.BearerToken = config.Token
+
+	if config.TLS != nil {
+		cfg.TLS.CertFile = config.TLS.CAFile
+		cfg.TLS.KeyFile = config.TLS.KeyFile
+		cfg.TLS.CAFile = config.TLS.CAFile
+		cfg.TLS.CertData = config.TLS.CertData
+		cfg.TLS.KeyData = config.TLS.KeyData
+		cfg.TLS.CAData = config.TLS.CAData
+	}
+
+	cli, err := cc.New(cc.ClientHTTP, host, cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	return cli
+}
+
+func NewRegistryClient(host string, config *Config) rc.IClient {
+
+	if config == nil {
+		config = new(Config)
+	}
+
+	cfg := rc.NewConfig()
+
+	cfg.BearerToken = config.Token
+
+	if config.TLS != nil {
+		cfg.TLS.CertFile = config.TLS.CAFile
+		cfg.TLS.KeyFile = config.TLS.KeyFile
+		cfg.TLS.CAFile = config.TLS.CAFile
+		cfg.TLS.CertData = config.TLS.CertData
+		cfg.TLS.KeyData = config.TLS.KeyData
+		cfg.TLS.CAData = config.TLS.CAData
+	}
+
+	cli, err := rc.New(cc.ClientHTTP, host, cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	return cli
+}

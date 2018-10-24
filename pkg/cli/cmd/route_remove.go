@@ -53,7 +53,7 @@ var routeRemoveCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
-		cli.V1().Namespace(namespace).Route(name).Remove(envs.Background(), opts)
+		cli.Cluster.V1().Namespace(namespace).Route(name).Remove(envs.Background(), opts)
 
 		fmt.Println(fmt.Sprintf("Route `%s` remove now", name))
 	},

@@ -17,3 +17,7 @@
 //
 
 package views
+
+type Session struct {
+	Token string `json:"token"`
+}
