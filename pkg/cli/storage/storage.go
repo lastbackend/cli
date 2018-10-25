@@ -20,11 +20,10 @@ package storage
 
 import (
 	"encoding/json"
+	"github.com/lastbackend/cli/pkg/util/filesystem"
 	"github.com/pkg/errors"
 	"os"
 	"strings"
-
-	"github.com/lastbackend/cli/pkg/util/filesystem"
 )
 
 var rootPath = strings.Join([]string{filesystem.HomeDir(), ".lastbackend"}, string(os.PathSeparator))
@@ -34,6 +33,11 @@ var fileCluster = strings.Join([]string{rootPath, "cluster"}, string(os.PathSepa
 
 func init() {
 	os.MkdirAll(rootPath, 0700)
+}
+
+type Cluster struct {
+	Name     string `json:"name"`
+	Endpoint string `json:"endpoint"`
 }
 
 func SetToken(token string) error {
@@ -48,17 +52,23 @@ func GetToken() (string, error) {
 	return string(buf), nil
 }
 
-func AddLocalCluster(name, endpoint string) error {
+func AddLocalCluster(name, endpoint string, local bool) error {
 	items, err := ListLocalCluster()
 	if err != nil {
 		return err
 	}
 
-	if _, ok := items[name]; ok {
-		return errors.New("already exists")
+	for _, item := range items {
+		if item.Name == name {
+			return errors.New("already exists")
+		}
 	}
 
-	items[name] = endpoint
+	cluster := new(Cluster)
+	cluster.Name = name
+	cluster.Endpoint = endpoint
+
+	items = append(items, cluster)
 
 	buf, err := json.Marshal(items)
 	if err != nil {
@@ -68,13 +78,13 @@ func AddLocalCluster(name, endpoint string) error {
 	return filesystem.WriteStrToFile(fileClusters, string(buf), 0700)
 }
 
-func ListLocalCluster() (map[string]string, error) {
+func ListLocalCluster() ([]*Cluster, error) {
 	buf, err := filesystem.ReadFile(fileClusters)
 	if err != nil {
 		return nil, err
 	}
 
-	items := make(map[string]string, 0)
+	items := make([]*Cluster, 0)
 
 	if len(buf) == 0 {
 		return items, nil
@@ -87,17 +97,19 @@ func ListLocalCluster() (map[string]string, error) {
 	return items, nil
 }
 
-func GetLocalCluster(name string) (string, error) {
+func GetLocalCluster(name string) (*Cluster, error) {
 	items, err := ListLocalCluster()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	if endpoint, ok := items[name]; ok {
-		return endpoint, nil
+	for _, item := range items {
+		if item.Name == name {
+			return item, nil
+		}
 	}
 
-	return "", nil
+	return nil, nil
 }
 
 func DelLocalCluster(name string) error {
@@ -107,57 +119,35 @@ func DelLocalCluster(name string) error {
 		return err
 	}
 
-	if _, ok := items[name]; ok {
-		delete(items, name)
-
-		buf, err := json.Marshal(items)
-		if err != nil {
-			return err
+	for i, item := range items {
+		if item.Name == name {
+			items = append(items[:i], items[i+1:]...)
+			break
 		}
-
-		return filesystem.WriteStrToFile(fileClusters, string(buf), 0700)
 	}
 
-	return nil
-}
-
-type Cluster struct {
-	Local    bool   `json:"local"`
-	Name     string `json:"name"`
-	Endpoint string `json:"endpoint,omitempty"`
-}
-
-func SetCluster(name, endpoint string, local bool) error {
-
-	var c = new(Cluster)
-	c.Name = name
-	c.Local = local
-	c.Endpoint = endpoint
-
-	buf, err := json.Marshal(c)
+	buf, err := json.Marshal(items)
 	if err != nil {
 		return err
 	}
 
-	return filesystem.WriteStrToFile(fileCluster, string(buf), 0700)
+	return filesystem.WriteStrToFile(fileClusters, string(buf), 0700)
 }
 
-func GetCluster() (*Cluster, error) {
+func SetCluster(cluster string) error {
+	return filesystem.WriteStrToFile(fileCluster, cluster, 0700)
+}
 
-	var res = new(Cluster)
+func GetCluster() (string, error) {
 
 	buf, err := filesystem.ReadFile(fileCluster)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if len(buf) == 0 {
-		return nil, nil
+		return "", nil
 	}
 
-	if err := json.Unmarshal(buf, &res); err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return string(buf), nil
 }
