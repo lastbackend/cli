@@ -52,18 +52,19 @@ var ClusterSelectCmd = &cobra.Command{
 		// Select local cluster
 		local, _ := cmd.Flags().GetBool("local")
 		if local {
-			items, err := storage.ListLocalCluster()
+
+			item, err := storage.GetLocalCluster(name)
 			if err != nil {
-				panic(err)
+				fmt.Println(err)
 			}
 
-			if e, ok := items[name]; !ok {
+			if item == nil {
 				fmt.Println(fmt.Sprintf("Cluster `%s` not found", name))
-			} else {
-				err = storage.SetCluster(name, e, true)
-				if err != nil {
-					panic(err)
-				}
+			}
+
+			err = storage.SetCluster(fmt.Sprintf("l.%s", item.Name))
+			if err != nil {
+				fmt.Println(err)
 			}
 
 			return
@@ -83,7 +84,7 @@ var ClusterSelectCmd = &cobra.Command{
 			return
 		}
 
-		err = storage.SetCluster(name, "", false)
+		err = storage.SetCluster(fmt.Sprintf("r.%s", cl.Meta.SelfLink))
 		if err != nil {
 			panic(err)
 		}

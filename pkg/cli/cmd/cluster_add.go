@@ -52,7 +52,12 @@ var ClusterAddCmd = &cobra.Command{
 		name := args[0]
 		endpoint := args[1]
 
-		err := storage.AddLocalCluster(name, endpoint)
+		local, err := cmd.Flags().GetBool("local")
+		if err != nil {
+			panic(err)
+		}
+
+		err = storage.AddLocalCluster(name, endpoint, local)
 		switch true {
 		case err == nil:
 		case err.Error() == "already exists":

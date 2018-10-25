@@ -19,66 +19,108 @@
 package view
 
 import (
-	gv "github.com/lastbackend/cli/pkg/client/genesis/http/v1/views"
+	"fmt"
+	"github.com/lastbackend/cli/pkg/cli/storage"
+	"github.com/lastbackend/cli/pkg/client/genesis/http/v1/views"
 	"github.com/lastbackend/cli/pkg/util/table"
 	lv "github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
 )
 
 type ClusterList []*Cluster
-type Cluster lv.Cluster
+
+type Cluster struct {
+	Meta   ClusterMeta      `json:"meta"`
+	Status lv.ClusterStatus `json:"status"`
+	Spec   ClusterSpec      `json:"spec"`
+}
+
+type ClusterMeta struct {
+	lv.Meta
+	Local bool `json:"local"`
+}
+
+type ClusterSpec struct {
+	Endpoint string `json:"endpoint"`
+}
 
 func (cl *ClusterList) Print() {
 
+	if cl == nil || len(*cl) == 0 {
+		fmt.Println("no clusters available")
+		println()
+		return
+	}
+
 	println()
 
-	t := table.New([]string{"NAME"})
+	t := table.New([]string{"NAME", "ENDPOINT"})
 	t.VisibleHeader = true
 
 	for _, s := range *cl {
-
 		var data = map[string]interface{}{}
 		data["NAME"] = s.Meta.Name
+		data["ENDPOINT"] = s.Spec.Endpoint
 		t.AddRow(data)
 	}
-	println()
+
+	print()
 	t.Print()
 	println()
 }
 
-func FromGenesisApiClusterListView(clusters *gv.ClusterList) *ClusterList {
-	var items = make(ClusterList, 0)
-	for _, cluster := range *clusters {
-		c := &lv.Cluster{}
-		c.Meta.Name = cluster.Meta.Name
-		c.Meta.Description = cluster.Meta.Description
-		items = append(items, FromApiClusterView(c))
-	}
-	return &items
-}
-
-func FromApiClusterListView(clusters *lv.ClusterList) *ClusterList {
-	var items = make(ClusterList, 0)
-	for _, cluster := range *clusters {
-		items = append(items, FromApiClusterView(cluster))
-	}
-	return &items
-}
-
 func (c *Cluster) Print() {
-	println()
+	print()
 	table.PrintHorizontal(map[string]interface{}{
-		"NAME":        c.Meta.Name,
-		"DESCRIPTION": c.Meta.Description,
+		"NAME":     c.Meta.Name,
+		"ENDPOINT": c.Spec.Endpoint,
+		"CREATED":  c.Meta.Created.Format("15:04:05 _2.01.2006"),
 	})
-	println()
+	print()
 }
 
-func FromApiClusterView(cluster *lv.Cluster) *Cluster {
-
-	if cluster == nil {
+func FromLbApiClusterView(cl *lv.Cluster) *Cluster {
+	if cl == nil {
 		return nil
 	}
+	c := new(Cluster)
+	c.Meta.Name = cl.Meta.Name
+	c.Status = cl.Status
+	return c
+}
 
-	item := Cluster(*cluster)
-	return &item
+func FromGenesisApiClusterView(cl *views.ClusterView) *Cluster {
+	if cl == nil {
+		return nil
+	}
+	c := new(Cluster)
+	c.Meta.Name = cl.Meta.SelfLink
+	c.Spec.Endpoint = cl.Spec.Endpoint
+	c.Status = cl.Status
+	return c
+}
+
+func FromGenesisApiClusterListView(cl *views.ClusterList) ClusterList {
+	if cl == nil {
+		list := make(views.ClusterList, 0)
+		cl = &list
+	}
+	list := make(ClusterList, 0)
+	for _, item := range *cl {
+		list = append(list, FromGenesisApiClusterView(item))
+	}
+	return list
+}
+
+func FromStorageClusterList(cl []*storage.Cluster) ClusterList {
+	if cl == nil {
+		cl = make([]*storage.Cluster, 0)
+	}
+	list := make(ClusterList, 0)
+	for _, item := range cl {
+		c := new(Cluster)
+		c.Meta.Name = item.Name
+		c.Spec.Endpoint = item.Endpoint
+		list = append(list, c)
+	}
+	return list
 }

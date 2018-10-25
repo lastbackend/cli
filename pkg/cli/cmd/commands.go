@@ -33,7 +33,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const defaultHost = "https://api.lastbackend.com"
+const defaultHost = "http://127.0.0.1:2965"
+
+//const defaultHost = "https://api.lastbackend.com"
 
 func init() {
 	RootCmd.AddCommand(
@@ -65,8 +67,6 @@ var RootCmd = &cobra.Command{
 
 		var err error
 
-		cfg.Cluster = cmd.Flag("cluster").Value.String()
-
 		cfg.Debug, err = cmd.Flags().GetBool("debug")
 		if err != nil {
 			panic("Invalid debug flag")
@@ -86,6 +86,7 @@ var RootCmd = &cobra.Command{
 		}
 
 		if tls {
+			config.TLS = new(client.TLSConfig)
 			config.TLS.Insecure = false
 			config.TLS.CAFile = cmd.Flag("tlscacert").Value.String()
 			config.TLS.CertFile = cmd.Flag("tlscert").Value.String()
@@ -96,27 +97,63 @@ var RootCmd = &cobra.Command{
 		cli.Genesis = client.NewGenesisClister(host, config)
 		cli.Registry = client.NewRegistryClient(host, config)
 
-		endpoint := cmd.Flag("cluster").Value.String()
-		if len(endpoint) != 0 {
-			host = endpoint
-		} else {
+		// ============================
+		// Use cluster from flag -C or --cluster
+		// ============================
 
-			cluster, err := storage.GetCluster()
-			if err != nil {
-				panic(err)
+		cn := cmd.Flag("cluster").Value.String()
+		if len(cn) != 0 {
+			match := strings.Split(cn, ":")
+
+			switch len(match) {
+			case 1:
+				cluster, err := storage.GetLocalCluster(cn)
+				if err != nil {
+					panic(err)
+				}
+				if cluster == nil {
+					fmt.Println("cluster not found")
+					return
+				}
+				host = cluster.Endpoint
+			case 2:
+				config.Headers = make(map[string]string, 0)
+				config.Headers["X-Cluster-Name"] = cn
+			default:
+				panic("invalid data")
 			}
 
-			if cluster != nil {
-				if cluster.Local {
-					host = cluster.Endpoint
-				} else {
-					config.Headers["X-Cluster-Name"] = cluster.Name
+			cli.Cluster = client.NewClusterClient(host, config)
+			ctx.SetClient(cli)
+			return
+		}
+
+		// ============================
+		// Use selected cluster
+		// ============================
+
+		cluster, err := storage.GetCluster()
+		if err != nil {
+			panic(err)
+		}
+
+		if cluster != "" {
+			switch cluster[:2] {
+			case "l.":
+				cluster, err := storage.GetLocalCluster(cluster[2:])
+				if err != nil {
+					panic(err)
 				}
+				host = cluster.Endpoint
+			case "r.":
+				config.Headers = make(map[string]string, 0)
+				config.Headers["X-Cluster-Name"] = cluster[2:]
+			default:
+				panic("invalid data")
 			}
 		}
 
 		cli.Cluster = client.NewClusterClient(host, config)
-
 		ctx.SetClient(cli)
 	},
 }
@@ -305,6 +342,7 @@ func Execute() {
 	RootCmd.PersistentFlags().String("tlscacert", getSSLPath("ca.pem"), fmt.Sprintf("Trust certs signed only by this CA (default \"%s\")", getSSLPath("ca.pem")))
 	RootCmd.PersistentFlags().String("tlscert", getSSLPath("cert.pem"), fmt.Sprintf("Path to TLS certificate file (default \"%s\")", getSSLPath("cert.pem")))
 	RootCmd.PersistentFlags().String("tlskey", getSSLPath("key.pem"), fmt.Sprintf("Path to TLS key file (default \"%s\")", getSSLPath("key.pem")))
+	RootCmd.PersistentFlags().String("token", "", "Set access token for header")
 
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)

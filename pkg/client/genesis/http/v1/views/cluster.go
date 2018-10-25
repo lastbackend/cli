@@ -27,5 +27,11 @@ import "github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
 type ClusterList []*ClusterView
 
 type ClusterView struct {
-	views.Cluster
+	Meta   views.Meta          `json:"meta"`
+	Status views.ClusterStatus `json:"status"`
+	Spec   ClusterSpec         `json:"spec"`
+}
+
+type ClusterSpec struct {
+	Endpoint string `json:"endpoint"`
 }
