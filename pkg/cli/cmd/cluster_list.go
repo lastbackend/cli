@@ -20,10 +20,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/lastbackend/cli/pkg/cli/view"
-
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/cli/pkg/cli/storage"
+	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/spf13/cobra"
 )
 
@@ -52,14 +51,8 @@ var ClusterListCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		if ritems != nil {
-			if len(*ritems) == 0 {
-				fmt.Println("no clusters available")
-			} else {
-				cluster := view.FromGenesisApiClusterListView(ritems)
-				cluster.Print()
-			}
-		}
+		vg := view.FromGenesisApiClusterListView(ritems)
+		vg.Print()
 
 		fmt.Print("\n")
 		fmt.Println("Locally clusters list:")
@@ -69,12 +62,7 @@ var ClusterListCmd = &cobra.Command{
 			panic(err)
 		}
 
-		if len(litems) == 0 {
-			fmt.Println("no clusters available")
-		} else {
-			fmt.Println(litems)
-		}
-
-		// TODO print local clusters
+		vs := view.FromStorageClusterList(litems)
+		vs.Print()
 	},
 }
