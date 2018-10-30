@@ -20,7 +20,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/lastbackend/dynamic/pkg/log"
+	"github.com/lastbackend/lastbackend/pkg/log"
 	"os"
 	"strings"
 
