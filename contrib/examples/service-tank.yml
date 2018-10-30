@@ -1,7 +1,7 @@
 kind: Service
 version: v1
 meta:
-  name: proxy
+  name: tank
   labels:
     type: proxy
     demo: test
@@ -18,7 +18,6 @@ spec:
     - name: nginx
       image:
         name: hackinglab/alpine-nginx-battlecity
-        names: evilroot/docker-2048
       ports:
         - 80
       volumes:
