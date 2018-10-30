@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/lastbackend/dynamic/pkg/log"
 	"os"
 	"strings"
 
@@ -33,9 +34,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const defaultHost = "http://127.0.0.1:2965"
-
-//const defaultHost = "https://api.lastbackend.com"
+const defaultHost = "https://api.lastbackend.com"
 
 func init() {
 	RootCmd.AddCommand(
@@ -69,12 +68,14 @@ var RootCmd = &cobra.Command{
 
 		cfg.Debug, err = cmd.Flags().GetBool("debug")
 		if err != nil {
-			panic("Invalid debug flag")
+			fmt.Println("Invalid debug flag")
+			return
 		}
 
 		token, err := storage.GetToken()
 		if err != nil {
-			panic("There is no token in .lastbackend in homedir")
+			fmt.Println("There is no token in .lastbackend in homedir")
+			return
 		}
 
 		host := defaultHost
@@ -82,7 +83,8 @@ var RootCmd = &cobra.Command{
 
 		tls, err := cmd.Flags().GetBool("tls")
 		if err != nil {
-			panic("Invalid tls flag")
+			fmt.Println("Invalid tls flag")
+			return
 		}
 
 		if tls {
@@ -120,7 +122,9 @@ var RootCmd = &cobra.Command{
 				config.Headers = make(map[string]string, 0)
 				config.Headers["X-Cluster-Name"] = cn
 			default:
-				panic("invalid data")
+				fmt.Println("invalid data")
+				return
+
 			}
 
 			cli.Cluster = client.NewClusterClient(host, config)
@@ -142,14 +146,15 @@ var RootCmd = &cobra.Command{
 			case "l.":
 				cluster, err := storage.GetLocalCluster(cluster[2:])
 				if err != nil {
-					panic(err)
+					log.Error(err.Error())
+					return
 				}
 				host = cluster.Endpoint
 			case "r.":
 				config.Headers = make(map[string]string, 0)
 				config.Headers["X-Cluster-Name"] = cluster[2:]
 			default:
-				panic("invalid data")
+				fmt.Println("can not read cluster info: check cache data ($HOME/.lastbackend)")
 			}
 		}
 
@@ -177,7 +182,10 @@ var namespaceCmd = &cobra.Command{
 		cmd.AddCommand(ns)
 
 		if len(args) == 0 {
-			cmd.Help()
+			if err := cmd.Help(); err != nil {
+				log.Error(err.Error())
+				return
+			}
 			return
 		}
 
@@ -188,7 +196,10 @@ var namespaceCmd = &cobra.Command{
 			routeCmd,
 		)
 
-		ns.Execute()
+		if err := ns.Execute(); err != nil {
+			log.Error(err.Error())
+			return
+		}
 
 	},
 }
@@ -209,13 +220,18 @@ var loginCmd = &cobra.Command{
 		)
 
 		fmt.Print("Login: ")
-		fmt.Scan(&login)
+		if _, err := fmt.Scan(&login); err != nil {
+			log.Error(err.Error())
+			return
+		}
+
 		fmt.Print("Password: ")
 		pass, err := gopass.GetPasswd()
 		if err != nil {
-			fmt.Println(err)
+			log.Error(err.Error())
 			return
 		}
+
 		password = string(pass)
 		fmt.Print("\r\n")
 
@@ -228,16 +244,17 @@ var loginCmd = &cobra.Command{
 
 		session, err := cli.Genesis.V1().Account().Login(envs.Background(), opts)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(err.Error())
 			return
 		}
 
 		if err := storage.SetToken(session.Token); err != nil {
-			fmt.Println(err)
+			fmt.Println(err.Error())
 			return
 		}
 
 		fmt.Println("Authorization successful!")
+		return
 	},
 }
 
@@ -259,7 +276,10 @@ var serviceCmd = &cobra.Command{
 	Use:   "service",
 	Short: "Manage your service",
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			log.Error(err.Error())
+			return
+		}
 	},
 }
 
@@ -267,7 +287,10 @@ var secretCmd = &cobra.Command{
 	Use:   "secret",
 	Short: "Manage your secret",
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			log.Error(err.Error())
+			return
+		}
 	},
 }
 
@@ -275,7 +298,10 @@ var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manage your configs",
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			log.Error(err.Error())
+			return
+		}
 	},
 }
 
@@ -283,7 +309,10 @@ var volumeCmd = &cobra.Command{
 	Use:   "volume",
 	Short: "Manage your volumes",
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			log.Error(err.Error())
+			return
+		}
 	},
 }
 
@@ -291,7 +320,10 @@ var routeCmd = &cobra.Command{
 	Use:   "route",
 	Short: "Manage your route",
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			log.Error(err.Error())
+			return
+		}
 	},
 }
 
@@ -299,7 +331,10 @@ var clusterCmd = &cobra.Command{
 	Use:   "cluster",
 	Short: "Manage your cluster",
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			log.Error(err.Error())
+			return
+		}
 	},
 }
 
@@ -307,7 +342,10 @@ var nodeCmd = &cobra.Command{
 	Use:   "node",
 	Short: "Manage cluster nodes",
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			log.Error(err.Error())
+			return
+		}
 	},
 }
 
@@ -315,7 +353,10 @@ var ingressCmd = &cobra.Command{
 	Use:   "ingress",
 	Short: "Manage cluster ingress servers",
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			log.Error(err.Error())
+			return
+		}
 	},
 }
 
@@ -323,7 +364,10 @@ var discoveryCmd = &cobra.Command{
 	Use:   "discovery",
 	Short: "Manage cluster discovery servers",
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		if err := cmd.Help(); err != nil {
+			log.Error(err.Error())
+			return
+		}
 	},
 }
 
