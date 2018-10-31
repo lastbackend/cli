@@ -1,0 +1,6 @@
+kind: Volume
+version: v1
+meta:
+  name: mysql
+spec:
+  type: dir

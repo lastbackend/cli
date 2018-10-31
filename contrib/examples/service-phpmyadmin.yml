@@ -1,0 +1,17 @@
+kind: Service
+version: v1
+meta:
+  name: phpmyadmin
+spec:
+  replicas: 1
+  template:
+    containers:
+      - name: dba
+        env:
+          - name: PMA_HOST
+            value: mysql.demo.lb.local
+        image:
+          name: phpmyadmin/phpmyadmin
+  network:
+    ports:
+      - '80:80/tcp'

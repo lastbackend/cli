@@ -1,0 +1,10 @@
+kind: Route
+version: v1
+meta:
+  name: db
+spec:
+  port: 80
+  rules:
+    - service: phpmyadmin
+      path: "/"
+      port: 80

@@ -1,0 +1,24 @@
+kind: Service
+version: v1
+meta:
+  name: mysql
+spec:
+  replicas: 1
+  template:
+    containers:
+      - name: database
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: changemepass
+        image:
+          name: mysql:5.7
+        volumes:
+          - name: mysql
+            path: "/var/lib/mysql"
+    volumes:
+      - name: mysql
+        volume:
+          name: mysql
+  network:
+    ports:
+      - '3306:3306/tcp'
