@@ -1,0 +1,10 @@
+kind: Route
+version: v1
+meta:
+  name: blog
+spec:
+  port: 80
+  rules:
+    - service: ghost
+      path: "/"
+      port: 80

@@ -1,0 +1,27 @@
+kind: Service
+version: v1
+meta:
+  name: ghost
+spec:
+  replicas: 1
+  template:
+    containers:
+      - name: ghost
+        env:
+          - name: database__client
+            value: mysql
+          - name: database__connection__host
+            value: mysql.demo.lb.local
+          - name: database__connection__user
+            value: root
+          - name: database__connection__password
+            value: changemepass 
+          - name: database__connection__database
+            value: ghost
+          - name: url
+            value: http://blog.demo.lbdp.io
+        image:
+          name: 'ghost'
+  network:
+    ports:
+      - '80:2368/tcp'
