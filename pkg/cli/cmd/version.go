@@ -27,6 +27,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Client version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(RootCmd.Use + " " + cmd.Flag("version").Value.String())
+		fmt.Println(fmt.Sprintf("version: %s", version))
 	},
 }
