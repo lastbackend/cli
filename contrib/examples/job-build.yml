@@ -1,0 +1,51 @@
+kind: Job
+version: v1
+meta:
+  name: build
+  labels:
+    app: lastbackend
+    type: job
+spec:
+  enabled: true
+  concurrency:
+    limit: 1
+  provider:
+    timeout: "60s"
+    http:
+      endpoint: "http://127.0.0.1/job/request"
+      method: GET
+      headers:
+        x-lastbackend-auth: "token"
+  hook:
+    http:
+      endpoint: "http://127.0.0.1/job/hook"
+      method: POST
+      headers:
+        "x-lastbackend-auth": "token"
+  task:
+    runtime:
+      services: [dind]
+      tasks:
+        - name: "build"
+          container: "git"
+          commands:
+            - command: "docker build -t index.lstbknd.net/undassa/alpine github.com/undassa/alpine"
+        - name: "push"
+          container: "git"
+          commands:
+            - command: "docker push index.lstbknd.net/undassa/alpine"
+    template:
+      containers:
+        - name: dind
+          image:
+            name: docker:18.09.1-dind
+          restart:
+            policy: always
+          security:
+            privileged: true
+        - name: git
+          image:
+            name: docker:18.09.1-git
+          env:
+            - name: DOCKER_HOST
+              value: "tcp://127.0.0.1:2375"

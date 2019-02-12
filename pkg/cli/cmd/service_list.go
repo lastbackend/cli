@@ -44,6 +44,7 @@ var serviceListCmd = &cobra.Command{
 		namespace := args[0]
 
 		cli := envs.Get().GetClient()
+
 		response, err := cli.Cluster.V1().Namespace(namespace).Service().List(envs.Background())
 		if err != nil {
 			fmt.Println(err)

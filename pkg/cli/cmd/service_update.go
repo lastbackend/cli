@@ -20,25 +20,14 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/cli/pkg/cli/view"
-	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
 	"github.com/lastbackend/lastbackend/pkg/distribution/types"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	serviceUpdateCmd.Flags().StringP("desc", "d", "", "set service description")
-	serviceUpdateCmd.Flags().Int64P("memory", "m", 0, "set service spec memory")
-	serviceUpdateCmd.Flags().IntP("replicas", "r", 0, "set service replicas")
-	serviceUpdateCmd.Flags().StringArrayP("port", "p", make([]string, 0), "set service ports")
-	serviceUpdateCmd.Flags().StringArrayP("env", "e", make([]string, 0), "set service env")
-	serviceUpdateCmd.Flags().StringArray("env-from-secret", make([]string, 0), "set service env from secret")
-	serviceUpdateCmd.Flags().StringArray("env-from-config", make([]string, 0), "set service env from config")
-	serviceUpdateCmd.Flags().StringP("image", "i", "", "set service image")
-	serviceUpdateCmd.Flags().String("image-secret", "", "set service image auth")
+	serviceManifestFlags(serviceUpdateCmd)
 	serviceCmd.AddCommand(serviceUpdateCmd)
 }
 
@@ -48,126 +37,17 @@ const serviceUpdateExample = `
 `
 
 var serviceUpdateCmd = &cobra.Command{
-	Use:     "update [NAMESPACE] [NAME]",
+	Use:     "update [NAMESPACE]/[NAME]",
 	Short:   "Change configuration of the service",
 	Example: serviceUpdateExample,
-	Args:    cobra.ExactArgs(2),
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		namespace := args[0]
-		name := args[1]
+		namespace, name, err := serviceParseSelfLink(args[0])
+		checkError(err)
 
-		description, _ := cmd.Flags().GetString("desc")
-		memory, _ := cmd.Flags().GetInt64("memory")
-		ports, _ := cmd.Flags().GetStringArray("port")
-		env, _ := cmd.Flags().GetStringArray("env")
-		senv, _ := cmd.Flags().GetStringArray("env-from-secret")
-		cenv, _ := cmd.Flags().GetStringArray("env-from-config")
-		replicas, _ := cmd.Flags().GetInt("replicas")
-		image, _ := cmd.Flags().GetString("image")
-		secret, _ := cmd.Flags().GetString("image-secret")
-
-		opts := new(request.ServiceManifest)
-		css := make([]request.ManifestSpecTemplateContainer, 0)
-		cs := request.ManifestSpecTemplateContainer{}
-
-		if len(name) != 0 {
-			opts.Meta.Name = &name
-		}
-
-		if len(description) != 0 {
-			opts.Meta.Description = &description
-		}
-
-		if memory != 0 {
-			cs.Resources.Request.RAM = memory
-		}
-
-		if replicas != 0 {
-			opts.Spec.Replicas = &replicas
-		}
-
-		if len(ports) > 0 {
-			opts.Spec.Network = new(request.ManifestSpecNetwork)
-			opts.Spec.Network.Ports = make([]string, 0)
-			opts.Spec.Network.Ports = ports
-		}
-
-		es := make(map[string]request.ManifestSpecTemplateContainerEnv)
-		if len(env) > 0 {
-			for _, e := range env {
-				kv := strings.SplitN(e, "=", 2)
-				eo := request.ManifestSpecTemplateContainerEnv{
-					Name: kv[0],
-				}
-				if len(kv) > 1 {
-					eo.Value = kv[1]
-				}
-
-				es[eo.Name] = eo
-			}
-
-		}
-		if len(senv) > 0 {
-			for _, e := range senv {
-				kv := strings.SplitN(e, "=", 3)
-				eo := request.ManifestSpecTemplateContainerEnv{
-					Name: kv[0],
-				}
-				if len(kv) < 3 {
-					fmt.Println("Service env from secret is in wrong format, should be [NAME]=[SECRET NAME]=[SECRET STORAGE KEY]")
-					return
-				}
-
-				if len(kv) == 3 {
-					eo.Secret.Name = kv[1]
-					eo.Secret.Key = kv[2]
-				}
-
-				es[eo.Name] = eo
-			}
-		}
-		if len(cenv) > 0 {
-			for _, e := range cenv {
-				kv := strings.SplitN(e, "=", 3)
-				eo := request.ManifestSpecTemplateContainerEnv{
-					Name: kv[0],
-				}
-				if len(kv) < 3 {
-					fmt.Println("Service env from config is in wrong format, should be [NAME]=[CONFIG NAME]=[CONFIG STORAGE KEY]")
-					return
-				}
-
-				if len(kv) == 3 {
-					eo.Config.Name = kv[1]
-					eo.Config.Key = kv[2]
-				}
-
-				es[eo.Name] = eo
-			}
-		}
-
-		if len(es) > 0 {
-			senvs := make([]request.ManifestSpecTemplateContainerEnv, 0)
-			for _, e := range es {
-				senvs = append(senvs, e)
-			}
-			cs.Env = senvs
-		}
-
-		opts.Meta.Description = &description
-		cs.Image.Name = image
-
-		if secret != types.EmptyString {
-			cs.Image.Secret = secret
-		}
-
-		css = append(css, cs)
-
-		if err := opts.Validate(); err != nil {
-			fmt.Println(err.Err())
-			return
-		}
+		opts, err := serviceParseManifest(cmd, name, types.EmptyString)
+		checkError(err)
 
 		cli := envs.Get().GetClient()
 		response, err := cli.Cluster.V1().Namespace(namespace).Service(name).Update(envs.Background(), opts)

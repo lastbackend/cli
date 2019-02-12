@@ -86,7 +86,7 @@ var serviceLogsCmd = &cobra.Command{
 			}
 
 			for _, pod := range deployment.Pods {
-				for _, container := range pod.Status.Containers {
+				for _, container := range pod.Status.Runtime.Services {
 					fmt.Printf("[%d] %s\n", index, container.Image.Name)
 					m[strconv.Itoa(index)] = serviceInfo{
 						Deployment: deployment.Meta.Name,

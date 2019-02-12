@@ -34,7 +34,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const defaultHost = "https://api.lastbackend.com"
+const defaultHost = "http://api.lstbknd.net:2965"
 
 func init() {
 	RootCmd.AddCommand(
@@ -50,6 +50,7 @@ func init() {
 		versionCmd,
 		nodeCmd,
 		ingressCmd,
+		jobCmd,
 	)
 }
 
@@ -275,6 +276,17 @@ var logoutCmd = &cobra.Command{
 var serviceCmd = &cobra.Command{
 	Use:   "service",
 	Short: "Manage your service",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := cmd.Help(); err != nil {
+			log.Error(err.Error())
+			return
+		}
+	},
+}
+
+var jobCmd = &cobra.Command{
+	Use:   "job",
+	Short: "Manage your job",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := cmd.Help(); err != nil {
 			log.Error(err.Error())

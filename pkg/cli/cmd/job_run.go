@@ -21,52 +21,33 @@ package cmd
 import (
 	"fmt"
 	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	serviceCmd.AddCommand(serviceInspectCmd)
+	jobCmd.AddCommand(jobRunCmd)
 }
 
-const serviceInspectExample = `
-  # Get information for 'redis' service in 'ns-demo' namespace
-  lb service inspect ns-demo redis
+const jobRunExample = `
+  # Get information for 'redis' job in 'ns-demo' namespace
+  lb job run ns/cron
 `
 
-var serviceInspectCmd = &cobra.Command{
-	Use:     "inspect [NAMESPACE]/[NAME]",
-	Short:   "Service info by name",
-	Example: serviceInspectExample,
+var jobRunCmd = &cobra.Command{
+	Use:     "run [NAMESPACE]/[NAME]",
+	Short:   "Run job info by name",
+	Example: jobRunExample,
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		namespace, name, err := serviceParseSelfLink(args[0])
+		namespace, name, err := jobParseSelfLink(args[0])
 		checkError(err)
 
 		cli := envs.Get().GetClient()
-		svc, err := cli.Cluster.V1().Namespace(namespace).Service(name).Get(envs.Background())
+		_, err = cli.Cluster.V1().Namespace(namespace).Job(name).Run(envs.Background(), nil)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-
-		routes, err := cli.Cluster.V1().Namespace(namespace).Route().List(envs.Background())
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		for _, r := range *routes {
-			for _, rule := range r.Spec.Rules {
-				if rule.Service == svc.Meta.Name {
-					fmt.Println("exposed:", r.Status.State, r.Spec.Domain, r.Spec.Port)
-				}
-			}
-
-		}
-
-		ss := view.FromApiServiceView(svc)
-		ss.Print()
 	},
 }

@@ -1,15 +1,8 @@
 kind: Service
 version: v1
 meta:
-  name: 2048 
-  labels:
-    type: proxy
-    demo: test
+  name: '2048'
 spec:
-  selector:
-    node:
-    labels:
-      type: "frontend"
   replicas: 1
   network:
     ports: ["80:80/tcp"]

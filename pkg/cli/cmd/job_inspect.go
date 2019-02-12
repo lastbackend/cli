@@ -26,47 +26,49 @@ import (
 )
 
 func init() {
-	serviceCmd.AddCommand(serviceInspectCmd)
+	jobInspectCmd.Flags().StringP("task", "t", "", "inspect particular task")
+	jobCmd.AddCommand(jobInspectCmd)
 }
 
-const serviceInspectExample = `
-  # Get information for 'redis' service in 'ns-demo' namespace
-  lb service inspect ns-demo redis
+const jobInspectExample = `
+  # Get information for 'redis' job in 'ns-demo' namespace
+  lb job inspect ns-demo redis
 `
 
-var serviceInspectCmd = &cobra.Command{
+var jobInspectCmd = &cobra.Command{
 	Use:     "inspect [NAMESPACE]/[NAME]",
 	Short:   "Service info by name",
-	Example: serviceInspectExample,
+	Example: jobInspectExample,
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		namespace, name, err := serviceParseSelfLink(args[0])
+		namespace, name, err := jobParseSelfLink(args[0])
 		checkError(err)
 
 		cli := envs.Get().GetClient()
-		svc, err := cli.Cluster.V1().Namespace(namespace).Service(name).Get(envs.Background())
+
+		t, err := cmd.Flags().GetString("task")
 		if err != nil {
-			fmt.Println(err)
+			_ = fmt.Errorf("can not parse task option: %s", t)
 			return
 		}
 
-		routes, err := cli.Cluster.V1().Namespace(namespace).Route().List(envs.Background())
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		for _, r := range *routes {
-			for _, rule := range r.Spec.Rules {
-				if rule.Service == svc.Meta.Name {
-					fmt.Println("exposed:", r.Status.State, r.Spec.Domain, r.Spec.Port)
-				}
+		if t == "" {
+			job, err := cli.Cluster.V1().Namespace(namespace).Job(name).Get(envs.Background())
+			if err != nil {
+				fmt.Println(err)
+				return
 			}
 
+			ss := view.FromApiJobView(job)
+			ss.Print()
+			return
 		}
 
-		ss := view.FromApiServiceView(svc)
-		ss.Print()
+		task, err := cli.Cluster.V1().Namespace(namespace).Job(name).Tasks(t).Get(envs.Background())
+
+		tw := view.FromApiTaskView(task)
+		tw.Print()
+
 	},
 }
