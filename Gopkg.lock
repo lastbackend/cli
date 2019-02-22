@@ -78,7 +78,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9e4266ee624baccaa0357f7a505748ab0814e6913bf02cb3fd9d4c01f150962d"
+  digest = "1:482ab43fb270a75a23e773d11a6d9ff44a17adb0c7ebf0f26d78c4cb954c4303"
   name = "github.com/lastbackend/lastbackend"
   packages = [
     "pkg/api/client",
@@ -95,6 +95,7 @@
     "pkg/log/formatter",
     "pkg/log/hooks",
     "pkg/log/logger",
+    "pkg/util/decoder",
     "pkg/util/http/request",
     "pkg/util/resource",
     "pkg/util/serializer",
@@ -311,6 +312,7 @@
     "github.com/lastbackend/lastbackend/pkg/distribution/errors",
     "github.com/lastbackend/lastbackend/pkg/distribution/types",
     "github.com/lastbackend/lastbackend/pkg/log",
+    "github.com/lastbackend/lastbackend/pkg/util/decoder",
     "github.com/lastbackend/lastbackend/pkg/util/http/request",
     "github.com/lastbackend/registry/pkg/api/client",
     "github.com/lastbackend/registry/pkg/distribution/types",

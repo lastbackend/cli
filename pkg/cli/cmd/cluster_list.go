@@ -49,8 +49,8 @@ var ClusterListCmd = &cobra.Command{
 		ritems, err := cli.Genesis.V1().Cluster().List(envs.Background())
 		if err != nil {
 			fmt.Println(err)
-			return
 		}
+
 		vg := view.FromGenesisApiClusterListView(ritems)
 		vg.Print()
 
@@ -59,7 +59,8 @@ var ClusterListCmd = &cobra.Command{
 
 		litems, err := storage.ListLocalCluster()
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+			return
 		}
 
 		vs := view.FromStorageClusterList(litems)
