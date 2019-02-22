@@ -19,16 +19,14 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/lastbackend/registry/pkg/distribution/types"
-	"io"
-	"os"
-	"strconv"
-	"strings"
-
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
+	"github.com/lastbackend/lastbackend/pkg/distribution/types"
 	"github.com/spf13/cobra"
+	"io"
+	"os"
 )
 
 func init() {
@@ -40,85 +38,19 @@ const serviceLogsExample = `
   lb service logs ns-demo redis
 `
 
-type LogsWriter struct {
-	io.Writer
-}
-
-func (LogsWriter) Write(p []byte) (int, error) {
-	return fmt.Print(string(p))
-}
-
-type mapInfo map[string]serviceInfo
-type serviceInfo struct {
-	Deployment string
-	Pod        string
-	Container  string
-}
-
 var serviceLogsCmd = &cobra.Command{
-	Use:     "logs [NAMESPACE] [NAME]",
+	Use:     "logs [NAMESPACE]/[NAME]",
 	Short:   "Get service logs",
 	Example: serviceLogsExample,
-	Args:    cobra.ExactArgs(2),
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		var (
-			choice = "0"
-			m      = make(mapInfo)
-			index  = 0
-		)
+		opts := new(request.ServiceLogsOptions)
 
-		namespace := args[0]
-		name := args[1]
+		namespace, name, err := serviceParseSelfLink(args[0])
+		checkError(err)
 
 		cli := envs.Get().GetClient()
-		response, err := cli.Cluster.V1().Namespace(namespace).Service(name).Get(envs.Background())
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		for _, deployment := range response.Deployments {
-			state := deployment.Status.State
-
-			if !(state == types.StateReady) {
-				continue
-			}
-
-			for _, pod := range deployment.Pods {
-				for _, container := range pod.Status.Runtime.Services {
-					fmt.Printf("[%d] %s\n", index, container.Image.Name)
-					m[strconv.Itoa(index)] = serviceInfo{
-						Deployment: deployment.Meta.Name,
-						Pod:        pod.Meta.Name,
-						Container:  container.ID,
-					}
-				}
-				index++
-			}
-		}
-
-		if len(m) == 0 {
-			fmt.Println("service in status: ", response.Status.State)
-			return
-		}
-
-		for {
-			fmt.Print("\nEnter container number for watch log or ^C for Exit: ")
-			fmt.Scan(&choice)
-			choice = strings.ToLower(choice)
-
-			if _, ok := m[choice]; ok {
-				break
-			}
-
-			fmt.Println("Number not correct!")
-		}
-
-		opts := new(request.ServiceLogsOptions)
-		opts.Deployment = m[choice].Deployment
-		opts.Pod = m[choice].Pod
-		opts.Container = m[choice].Container
 
 		reader, err := cli.Cluster.V1().Namespace(namespace).Service(name).Logs(envs.Background(), opts)
 		if err != nil {
@@ -126,7 +58,21 @@ var serviceLogsCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println("Service logs:")
-		io.Copy(os.Stdout, reader)
+		dec := json.NewDecoder(reader)
+		for {
+			var doc types.LogMessage
+
+			err := dec.Decode(&doc)
+			if err == io.EOF {
+				// all done
+				break
+			}
+			if err != nil {
+				fmt.Errorf(err.Error())
+				os.Exit(1)
+			}
+
+			fmt.Println(">", doc.Selflink, doc.Data)
+		}
 	},
 }
