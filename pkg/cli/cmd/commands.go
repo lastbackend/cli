@@ -97,7 +97,7 @@ var RootCmd = &cobra.Command{
 		}
 
 		cli := &client.Client{}
-		cli.Genesis = client.NewGenesisClister(host, config)
+		cli.Genesis = client.NewGenesisCluster(host, config)
 		cli.Registry = client.NewRegistryClient(host, config)
 
 		// ============================
@@ -212,7 +212,7 @@ var loginCmd = &cobra.Command{
   # Log in to a Last.Backend 
   lb login
   Login: username
-  Password: ******"`,
+  Password: ******`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		var (

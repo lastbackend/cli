@@ -19,6 +19,9 @@
 package cmd
 
 import (
+	"fmt"
+	"github.com/lastbackend/cli/pkg/cli/envs"
+	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/spf13/cobra"
 )
 
@@ -37,13 +40,12 @@ var ClusterInspectCmd = &cobra.Command{
 	Example: clusterInspectExample,
 	Args:    cobra.NoArgs,
 	Run: func(_ *cobra.Command, _ []string) {
-		// TODO: need implementing
-		//cli := envs.Get().GetClient()
-		//response, err := cli.Cluster.V1().Cluster().Get(envs.Background())
-		//if err != nil {
-		//	fmt.Println(err)
-		//	return
-		//}
-		//view.FromLbApiClusterView(response).Print()
+		cli := envs.Get().GetClient()
+		response, err := cli.Cluster.V1().Cluster().Get(envs.Background())
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		view.FromLbApiClusterView(response).Print()
 	},
 }
