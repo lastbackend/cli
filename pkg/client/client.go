@@ -30,7 +30,7 @@ type Client struct {
 	Registry rc.IClient
 }
 
-func NewGenesisClister(host string, config *Config) gc.IClient {
+func NewGenesisCluster(host string, config *Config) gc.IClient {
 
 	if config == nil {
 		config = new(Config)

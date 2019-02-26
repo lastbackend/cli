@@ -20,13 +20,14 @@ package view
 
 import (
 	"fmt"
+	"sort"
+	"time"
+
 	"github.com/ararog/timeago"
 	"github.com/lastbackend/cli/pkg/util/converter"
 	"github.com/lastbackend/cli/pkg/util/table"
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
 	"github.com/lastbackend/lastbackend/pkg/distribution/types"
-	"sort"
-	"time"
 )
 
 type JobList []*Job

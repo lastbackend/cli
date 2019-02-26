@@ -75,7 +75,7 @@ func (s *Task) Print() {
 		for _, svc := range s.Status.Pod.Runtime.Services {
 
 			var taskRow = map[string]interface{}{}
-			got, _ := timeago.TimeAgoWithTime(time.Now(), svc.State.Created.Created)
+			got, _ := timeago.TimeAgoWithTime(time.Now(), svc.State.Created.Timestamp)
 			taskRow["Name"] = svc.Name
 			taskRow["Status"] = svc.Ready
 			taskRow["Age"] = got
@@ -106,7 +106,7 @@ func (s *Task) Print() {
 
 			for _, cmd := range step.Commands {
 				var taskRow = map[string]interface{}{}
-				got, _ := timeago.TimeAgoWithTime(time.Now(), cmd.State.Created.Created)
+				got, _ := timeago.TimeAgoWithTime(time.Now(), cmd.State.Created.Timestamp)
 				taskRow["Name"] = cmd.Name
 				taskRow["Status"] = cmd.Ready
 				taskRow["Age"] = got
