@@ -25,16 +25,15 @@ import (
 
 	"github.com/ararog/timeago"
 	"github.com/lastbackend/cli/pkg/util/converter"
-	"github.com/lastbackend/lastbackend/pkg/distribution/types"
-
 	"github.com/lastbackend/cli/pkg/util/table"
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
+	"github.com/lastbackend/lastbackend/pkg/distribution/types"
 )
 
-type ServiceList []*Service
-type Service views.Service
+type JobList []*Job
+type Job views.Job
 
-func (sl *ServiceList) Print() {
+func (sl *JobList) Print() {
 
 	t := table.New([]string{"NAME", "ENDPOINT", "STATUS", "REPLICAS"})
 	t.VisibleHeader = true
@@ -44,7 +43,6 @@ func (sl *ServiceList) Print() {
 		var data = map[string]interface{}{}
 
 		data["NAME"] = s.Meta.Name
-		data["ENDPOINT"] = s.Meta.Endpoint
 		data["STATUS"] = s.Status.State
 
 		t.AddRow(data)
@@ -54,7 +52,7 @@ func (sl *ServiceList) Print() {
 	println()
 }
 
-func (s *Service) Print() {
+func (s *Job) Print() {
 
 	fmt.Printf("Name:\t\t%s/%s\n", s.Meta.Namespace, s.Meta.Name)
 	if s.Meta.Description != types.EmptyString {
@@ -64,9 +62,6 @@ func (s *Service) Print() {
 	fmt.Printf("State:\t\t%s\n", s.Status.State)
 	if s.Status.Message != types.EmptyString {
 		fmt.Printf("Message:\t\t%s\n", s.Status.Message)
-	}
-	if s.Meta.Endpoint != types.EmptyString {
-		fmt.Printf("Endpoint:\t%s\n", s.Meta.Endpoint)
 	}
 
 	created, _ := timeago.TimeAgoWithTime(time.Now(), s.Meta.Created)
@@ -91,70 +86,30 @@ func (s *Service) Print() {
 
 	fmt.Printf("Labels:\t\t%s\n", out)
 	println()
-
 	println()
-	if len(s.Deployments) > 0 {
 
-		var states = make(map[string]int, 0)
-		states[types.StateReady] = 0
-		states[types.StateProvision] = 0
-		states[types.EmptyString] = 0
+	if len(s.Tasks) > 0 {
 
-		for _, d := range s.Deployments {
-			switch d.Status.State {
-			case types.StateReady:
-				states[types.StateReady]++
-				break
-			case types.StateProvision:
-				states[types.StateProvision]++
-				break
-			default:
-				states[types.EmptyString]++
-				break
-			}
+		taskTable := table.New([]string{"Name", "Status", "Age", "Message"})
+		taskTable.VisibleHeader = true
+
+		for _, t := range s.Tasks {
+
+			var taskRow = map[string]interface{}{}
+			got, _ := timeago.TimeAgoWithTime(time.Now(), t.Meta.Created)
+			taskRow["Name"] = t.Meta.Name
+			taskRow["Status"] = t.Status.State
+			taskRow["Age"] = got
+			taskTable.AddRow(taskRow)
 		}
 
-		if states[types.StateReady] > 0 {
-
-			fmt.Println("Active deployments:")
-			println()
-
-			for _, d := range s.Deployments {
-				if d.Status.State == types.StateReady {
-					s.PrintDeployment(d)
-				}
-			}
-		}
-
-		if states[types.StateProvision] > 0 {
-			println()
-			fmt.Println("Provision deployments:")
-			println()
-			for _, d := range s.Deployments {
-				if d.Status.State == types.StateProvision {
-					s.PrintDeployment(d)
-					println()
-				}
-			}
-		}
-
-		if states[types.EmptyString] > 0 {
-			println()
-			fmt.Println("Inactive deployments:")
-			println()
-			for _, d := range s.Deployments {
-				if d.Status.State != types.StateProvision && d.Status.State != types.StateReady {
-					s.PrintDeployment(d)
-					println()
-				}
-			}
-		}
+		taskTable.Print()
 
 	}
 	println()
 }
 
-func (s *Service) PrintDeployment(d *views.Deployment) {
+func (s *Job) PrintTask(d *views.Task) {
 
 	fmt.Printf(" Name:\t\t%s\n", d.Meta.Name)
 	if d.Meta.Description != types.EmptyString {
@@ -172,6 +127,7 @@ func (s *Service) PrintDeployment(d *views.Deployment) {
 	println()
 	fmt.Printf(" Pods:\n")
 	println()
+
 	podTable := table.New([]string{"Name", "Ready", "Status", "Restarts", "Age"})
 	podTable.VisibleHeader = true
 
@@ -208,20 +164,20 @@ func (s *Service) PrintDeployment(d *views.Deployment) {
 	println()
 }
 
-func FromApiServiceView(service *views.Service) *Service {
+func FromApiJobView(job *views.Job) *Job {
 
-	if service == nil {
+	if job == nil {
 		return nil
 	}
 
-	item := Service(*service)
+	item := Job(*job)
 	return &item
 }
 
-func FromApiServiceListView(services *views.ServiceList) *ServiceList {
-	var items = make(ServiceList, 0)
-	for _, service := range *services {
-		items = append(items, FromApiServiceView(service))
+func FromApiJobListView(jobs *views.JobList) *JobList {
+	var items = make(JobList, 0)
+	for _, job := range *jobs {
+		items = append(items, FromApiJobView(job))
 	}
 	return &items
 }

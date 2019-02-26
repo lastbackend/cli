@@ -51,6 +51,7 @@ func init() {
 		versionCmd,
 		nodeCmd,
 		ingressCmd,
+		jobCmd,
 	)
 }
 
@@ -79,6 +80,10 @@ var RootCmd = &cobra.Command{
 			return
 		}
 
+		if cmd.Flag("token").Value != nil && len(cmd.Flag("token").Value.String()) != 0 {
+			token = cmd.Flag("token").Value.String()
+		}
+
 		host := defaultHost
 		config := &client.Config{Token: token}
 
@@ -97,12 +102,14 @@ var RootCmd = &cobra.Command{
 		}
 
 		cli := &client.Client{}
-		cli.Genesis = client.NewGenesisClister(host, config)
+		cli.Genesis = client.NewGenesisCluster(host, config)
 		cli.Registry = client.NewRegistryClient(host, config)
 
 		// ============================
 		// Use cluster from flag -C or --cluster
 		// ============================
+
+		config.Headers = make(map[string]string, 0)
 
 		cn := cmd.Flag("cluster").Value.String()
 		if len(cn) != 0 {
@@ -120,7 +127,6 @@ var RootCmd = &cobra.Command{
 				}
 				host = cluster.Endpoint
 			case 2:
-				config.Headers = make(map[string]string, 0)
 				config.Headers["X-Cluster-Name"] = cn
 			default:
 				fmt.Println("invalid data")
@@ -148,6 +154,10 @@ var RootCmd = &cobra.Command{
 				cluster, err := storage.GetLocalCluster(cluster[2:])
 				if err != nil {
 					log.Error(err.Error())
+					return
+				}
+				if cluster == nil {
+					fmt.Println("can not read cluster info: check cache data ($HOME/.lastbackend)")
 					return
 				}
 				host = cluster.Endpoint
@@ -212,7 +222,7 @@ var loginCmd = &cobra.Command{
   # Log in to a Last.Backend 
   lb login
   Login: username
-  Password: ******"`,
+  Password: ******`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		var (
@@ -276,6 +286,17 @@ var logoutCmd = &cobra.Command{
 var serviceCmd = &cobra.Command{
 	Use:   "service",
 	Short: "Manage your service",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := cmd.Help(); err != nil {
+			log.Error(err.Error())
+			return
+		}
+	},
+}
+
+var jobCmd = &cobra.Command{
+	Use:   "job",
+	Short: "Manage your job",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := cmd.Help(); err != nil {
 			log.Error(err.Error())

@@ -21,31 +21,42 @@ package cmd
 import (
 	"fmt"
 	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/cli/pkg/cli/view"
+	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	clusterCmd.AddCommand(ClusterInspectCmd)
+	jobCmd.AddCommand(jobRemoveCmd)
 }
 
-const clusterInspectExample = `
-  # Get information about cluster 
-  lb cluster inspect
+const jobRemoveExample = `
+  # Remove 'redis' job in 'ns-demo' namespace
+  lb job remove ns-demo redis
 `
 
-var ClusterInspectCmd = &cobra.Command{
-	Use:     "inspect",
-	Short:   "Get cluster info",
-	Example: clusterInspectExample,
-	Args:    cobra.NoArgs,
-	Run: func(_ *cobra.Command, _ []string) {
-		cli := envs.Get().GetClient()
-		response, err := cli.Cluster.V1().Cluster().Get(envs.Background())
-		if err != nil {
-			fmt.Println(err)
+var jobRemoveCmd = &cobra.Command{
+	Use:     "remove [NAMESPACE] [NAME]",
+	Short:   "Remove job by name",
+	Example: jobRemoveExample,
+	Args:    cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+
+		namespace := args[0]
+		name := args[1]
+
+		opts := &request.JobRemoveOptions{Force: false}
+
+		if err := opts.Validate(); err != nil {
+			fmt.Println(err.Err())
 			return
 		}
-		view.FromLbApiClusterView(response).Print()
+
+		cli := envs.Get().GetClient()
+		if err := cli.Cluster.V1().Namespace(namespace).Job(name).Remove(envs.Background(), opts); err != nil {
+			_ = fmt.Errorf("job remove err: %s", err.Error())
+			return
+		}
+
+		fmt.Println(fmt.Sprintf("Job `%s` is successfully removed", name))
 	},
 }

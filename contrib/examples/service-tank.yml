@@ -2,26 +2,12 @@ kind: Service
 version: v1
 meta:
   name: tank
-  labels:
-    type: proxy
-    demo: test
 spec:
-  selector:
-    node:
-    labels:
-      type: "frontend"
   replicas: 1
   network:
     ports: ["80:80/tcp"]
   template:
     containers:
-    - name: nginx
-      image:
-        name: hackinglab/alpine-nginx-battlecity
-      ports:
-        - 80
-      volumes:
-        - name: demo
-          path: "/demo"
-    volumes:
-      - name: demo
+      - name: nginx
+        image:
+          name: hackinglab/alpine-nginx-battlecity

@@ -44,10 +44,11 @@ var namespaceCreateCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		opts := new(request.NamespaceCreateOptions)
+		opts := new(request.NamespaceManifest)
 
-		opts.Description = cmd.Flag("desc").Value.String()
-		opts.Name = args[0]
+		desc := cmd.Flag("desc").Value.String()
+		opts.Meta.Name = &args[0]
+		opts.Meta.Description = &desc
 
 		if err := opts.Validate(); err != nil {
 			fmt.Println(err.Err())
@@ -61,7 +62,7 @@ var namespaceCreateCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println(fmt.Sprintf("Namespace `%s` is created", opts.Name))
+		fmt.Println(fmt.Sprintf("Namespace `%s` is created", opts.Meta.Name))
 		ns := view.FromApiNamespaceView(response)
 		ns.Print()
 	},

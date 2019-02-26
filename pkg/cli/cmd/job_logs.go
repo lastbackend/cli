@@ -21,38 +21,50 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+
 	"github.com/lastbackend/cli/pkg/cli/envs"
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
 	"github.com/lastbackend/lastbackend/pkg/distribution/types"
 	"github.com/spf13/cobra"
-	"io"
-	"os"
 )
 
 func init() {
-	serviceCmd.AddCommand(serviceLogsCmd)
+	jobLogsCmd.Flags().StringP("task", "t", "", "read logs for particular task")
+	jobCmd.AddCommand(jobLogsCmd)
 }
 
-const serviceLogsExample = `
-  # Get 'redis' service logs for 'ns-demo' namespace
-  lb service logs ns-demo redis
+const jobLogsExample = `
+  # Get 'redis' job logs for 'ns-demo' namespace
+  lb job logs [NAMESPACE]/[NAME] -t [task-id]
 `
 
-var serviceLogsCmd = &cobra.Command{
+var jobLogsCmd = &cobra.Command{
 	Use:     "logs [NAMESPACE]/[NAME]",
-	Short:   "Get service logs",
-	Example: serviceLogsExample,
+	Short:   "Get job logs",
+	Example: jobLogsExample,
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		opts := new(request.ServiceLogsOptions)
+		opts := new(request.JobLogsOptions)
 
-		namespace, name, err := serviceParseSelfLink(args[0])
+		namespace, name, err := jobParseSelfLink(args[0])
 		checkError(err)
+
+		task, err := cmd.Flags().GetString("task")
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		if task != types.EmptyString {
+			opts.Task = task
+		}
 
 		cli := envs.Get().GetClient()
 
-		reader, err := cli.Cluster.V1().Namespace(namespace).Service(name).Logs(envs.Background(), opts)
+		reader, err := cli.Cluster.V1().Namespace(namespace).Job(name).Logs(envs.Background(), opts)
 		if err != nil {
 			fmt.Println(err)
 			return

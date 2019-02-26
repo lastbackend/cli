@@ -47,8 +47,9 @@ var namespaceUpdateCmd = &cobra.Command{
 		namespace := args[0]
 		desc := cmd.Flag("desc").Value.String()
 
-		opts := new(request.NamespaceUpdateOptions)
-		opts.Description = &desc
+		opts := new(request.NamespaceManifest)
+		opts.Meta.Name = &namespace
+		opts.Meta.Description = &desc
 
 		if err := opts.Validate(); err != nil {
 			fmt.Println(err.Err())

@@ -19,12 +19,14 @@
 package view
 
 import (
+	"fmt"
 	"github.com/lastbackend/cli/pkg/util/table"
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
 )
 
 type NamespaceList []*Namespace
 type Namespace views.Namespace
+type NamespaceApplyStatus views.NamespaceApplyStatus
 
 func (n *Namespace) Print() {
 
@@ -57,6 +59,53 @@ func (nl *NamespaceList) Print() {
 	println()
 }
 
+func (ns *NamespaceApplyStatus) Print() {
+
+	var printEntity = func(kind string, status map[string]bool) {
+		fmt.Printf("%s:\n", kind)
+		t := table.New([]string{"NAME", "STATUS"})
+		t.VisibleHeader = false
+
+		for n, s := range status {
+			var data = map[string]interface{}{}
+			data["NAME"] = n
+			if s {
+				data["STATUS"] = "Provisioned"
+			} else {
+				data["STATUS"] = "Error"
+			}
+			t.AddRow(data)
+		}
+		t.Print()
+		println()
+	}
+
+	if len(ns.Services) > 0 {
+		printEntity("Services", ns.Services)
+	}
+
+	if len(ns.Configs) > 0 {
+		printEntity("Configs", ns.Configs)
+	}
+
+	if len(ns.Secrets) > 0 {
+		printEntity("Secrets", ns.Secrets)
+	}
+
+	if len(ns.Volumes) > 0 {
+		printEntity("Volumes", ns.Volumes)
+	}
+
+	if len(ns.Routes) > 0 {
+		printEntity("Routes", ns.Routes)
+	}
+
+	if len(ns.Jobs) > 0 {
+		printEntity("Jobs", ns.Jobs)
+	}
+
+}
+
 func FromApiNamespaceView(namespace *views.Namespace) *Namespace {
 
 	if namespace == nil {
@@ -73,4 +122,15 @@ func FromApiNamespaceListView(namespaces *views.NamespaceList) *NamespaceList {
 		items = append(items, FromApiNamespaceView(namespace))
 	}
 	return &items
+}
+
+func FromApiNamespaceStatusView(status *views.NamespaceApplyStatus) *NamespaceApplyStatus {
+	ns := new(NamespaceApplyStatus)
+	ns.Configs = status.Configs
+	ns.Secrets = status.Secrets
+	ns.Services = status.Services
+	ns.Volumes = status.Volumes
+	ns.Routes = status.Routes
+	ns.Jobs = status.Jobs
+	return ns
 }

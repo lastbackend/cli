@@ -20,32 +20,29 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/cli/pkg/cli/view"
-	"github.com/spf13/cobra"
+	"github.com/lastbackend/lastbackend/pkg/distribution/errors"
+	"github.com/lastbackend/lastbackend/pkg/distribution/types"
+	"strings"
 )
 
-func init() {
-	clusterCmd.AddCommand(ClusterInspectCmd)
-}
+func jobParseSelfLink(selflink string) (string, string, error) {
+	match := strings.Split(selflink, "/")
 
-const clusterInspectExample = `
-  # Get information about cluster 
-  lb cluster inspect
-`
+	var (
+		namespace, name string
+	)
 
-var ClusterInspectCmd = &cobra.Command{
-	Use:     "inspect",
-	Short:   "Get cluster info",
-	Example: clusterInspectExample,
-	Args:    cobra.NoArgs,
-	Run: func(_ *cobra.Command, _ []string) {
-		cli := envs.Get().GetClient()
-		response, err := cli.Cluster.V1().Cluster().Get(envs.Background())
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		view.FromLbApiClusterView(response).Print()
-	},
+	switch len(match) {
+	case 2:
+		namespace = match[0]
+		name = match[1]
+	case 1:
+		fmt.Println("Use default namespace:", types.DEFAULT_NAMESPACE)
+		namespace = types.DEFAULT_NAMESPACE
+		name = match[0]
+	default:
+		return "", "", errors.New("invalid service name provided")
+	}
+
+	return namespace, name, nil
 }

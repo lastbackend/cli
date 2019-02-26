@@ -38,6 +38,7 @@ func init() {
 type Cluster struct {
 	Name     string `json:"name"`
 	Endpoint string `json:"endpoint"`
+	Token    string `json:"token"`
 }
 
 func SetToken(token string) error {
@@ -52,7 +53,7 @@ func GetToken() (string, error) {
 	return string(buf), nil
 }
 
-func AddLocalCluster(name, endpoint string, local bool) error {
+func AddLocalCluster(name, endpoint, token string, local bool) error {
 	items, err := ListLocalCluster()
 	if err != nil {
 		return err
@@ -67,6 +68,7 @@ func AddLocalCluster(name, endpoint string, local bool) error {
 	cluster := new(Cluster)
 	cluster.Name = name
 	cluster.Endpoint = endpoint
+	cluster.Token = token
 
 	items = append(items, cluster)
 

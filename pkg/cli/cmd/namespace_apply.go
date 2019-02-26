@@ -20,14 +20,16 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/lastbackend/cli/pkg/cli/view"
+	"github.com/lastbackend/lastbackend/pkg/distribution/types"
+	"github.com/lastbackend/lastbackend/pkg/util/decoder"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/lastbackend/cli/pkg/cli/envs"
-	"github.com/lastbackend/cli/pkg/cli/view"
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1"
 	"github.com/lastbackend/lastbackend/pkg/api/types/v1/request"
-	"github.com/lastbackend/lastbackend/pkg/api/types/v1/views"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -38,13 +40,13 @@ const applyExample = `
 `
 
 func init() {
-	applyCmd.Flags().StringArrayP("file", "f", make([]string, 0), "create secret from files")
+	applyCmd.Flags().StringArrayP("file", "f", make([]string, 0), "apply resources to namespace from files")
 	namespaceCmd.AddCommand(applyCmd)
 }
 
 var applyCmd = &cobra.Command{
 	Use:   "apply [NAME]",
-	Short: "Apply file manifest to cluster",
+	Short: "Apply manifest files to cluster",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
@@ -61,6 +63,7 @@ var applyCmd = &cobra.Command{
 		}
 
 		cli := envs.Get().GetClient()
+		spec := v1.Request().Namespace().ApplyManifest()
 
 		for _, f := range files {
 
@@ -71,7 +74,11 @@ var applyCmd = &cobra.Command{
 					os.Exit(1)
 				}
 			}
-			s.Close()
+
+			if err := s.Close(); err != nil {
+				fmt.Errorf("close file err: %s", err.Error())
+				return
+			}
 
 			c, err := ioutil.ReadFile(f)
 			if err != nil {
@@ -79,125 +86,110 @@ var applyCmd = &cobra.Command{
 				os.Exit(1)
 			}
 
-			var m = new(request.Runtime)
-			yaml.Unmarshal(c, m)
+			items := decoder.YamlSplit(c)
+			fmt.Println("manifests:", len(items))
 
-			if m.Kind == "Service" {
+			for _, i := range items {
 
-				spec := v1.Request().Service().Manifest()
-				err := spec.FromYaml(c)
-				if err != nil {
-					_ = fmt.Errorf("invalid specification: %s", err.Error())
-					return
+				var m = new(request.Runtime)
+
+				if err := yaml.Unmarshal([]byte(i), m); err != nil {
+					_ = fmt.Errorf("can not parse manifest: %s: %s", f, err.Error())
+					continue
 				}
 
-				var rsvc *views.Service
-
-				if spec.Meta.Name != nil {
-					rsvc, _ = cli.Cluster.V1().Namespace(namespace).Service(*spec.Meta.Name).Get(envs.Background())
-				}
-
-				if rsvc == nil {
-					fmt.Println("create new service")
-					rsvc, err = cli.Cluster.V1().Namespace(namespace).Service().Create(envs.Background(), spec)
+				switch strings.ToLower(m.Kind) {
+				case types.KindConfig:
+					m := new(request.ConfigManifest)
+					err := m.FromYaml(i)
 					if err != nil {
-						fmt.Println(err)
+						_ = fmt.Errorf("invalid specification: %s", err.Error())
 						return
 					}
-				} else {
-					rsvc, err = cli.Cluster.V1().Namespace(namespace).Service(rsvc.Meta.Name).Update(envs.Background(), spec)
+					if m.Meta.Name == nil {
+						break
+					}
+					fmt.Printf("Add config manifest: %s\n", *m.Meta.Name)
+					spec.Configs[*m.Meta.Name] = m
+					break
+				case types.KindSecret:
+					m := new(request.SecretManifest)
+					err := m.FromYaml(i)
 					if err != nil {
-						fmt.Println(3)
-						fmt.Println(err)
+						_ = fmt.Errorf("invalid specification: %s", err.Error())
 						return
 					}
-				}
-
-				if rsvc != nil {
-					service := view.FromApiServiceView(rsvc)
-					service.Print()
-				} else {
-					fmt.Println("ooops")
-				}
-
-			}
-
-			if m.Kind == "Route" {
-				spec := v1.Request().Route().Manifest()
-				err := spec.FromYaml(c)
-				if err != nil {
-					fmt.Errorf("invalid specification: %s", err.Error())
-					return
-				}
-
-				var rr *views.Route
-
-				if spec.Meta.Name != nil {
-					rr, _ = cli.Cluster.V1().Namespace(namespace).Route(*spec.Meta.Name).Get(envs.Background())
-				}
-
-				if rr == nil {
-					fmt.Println("create new route")
-					rr, err = cli.Cluster.V1().Namespace(namespace).Route().Create(envs.Background(), spec)
+					if m.Meta.Name == nil {
+						break
+					}
+					fmt.Printf("Add secret manifest: %s\n", *m.Meta.Name)
+					spec.Secrets[*m.Meta.Name] = m
+					break
+				case types.KindService:
+					m := new(request.ServiceManifest)
+					err := m.FromYaml(i)
 					if err != nil {
-						fmt.Println(err)
+						_ = fmt.Errorf("invalid specification: %s", err.Error())
 						return
 					}
-				} else {
-					fmt.Println("update route")
-					rr, err = cli.Cluster.V1().Namespace(namespace).Route(rr.Meta.Name).Update(envs.Background(), spec)
+					if m.Meta.Name == nil {
+						break
+					}
+					fmt.Printf("Add service manifest: %s\n", *m.Meta.Name)
+					spec.Services[*m.Meta.Name] = m
+					break
+				case types.KindVolume:
+
+					m := new(request.VolumeManifest)
+					err := m.FromYaml(i)
 					if err != nil {
-						fmt.Println(err)
+						_ = fmt.Errorf("invalid specification: %s", err.Error())
 						return
 					}
-				}
-
-				if rr != nil {
-					route := view.FromApiRouteView(rr)
-					route.Print()
-				} else {
-					fmt.Println("ooops")
-				}
-			}
-
-			if m.Kind == "Volume" {
-				spec := v1.Request().Volume().Manifest()
-				err := spec.FromYaml(c)
-				if err != nil {
-					fmt.Errorf("invalid specification: %s", err.Error())
-					return
-				}
-
-				var rr *views.Volume
-
-				if spec.Meta.Name != nil {
-					rr, _ = cli.Cluster.V1().Namespace(namespace).Volume(*spec.Meta.Name).Get(envs.Background())
-				}
-
-				if rr == nil {
-					fmt.Println("create new route")
-					rr, err = cli.Cluster.V1().Namespace(namespace).Volume().Create(envs.Background(), spec)
+					if m.Meta.Name == nil {
+						break
+					}
+					fmt.Printf("Add volume manifest: %s\n", *m.Meta.Name)
+					spec.Volumes[*m.Meta.Name] = m
+					break
+				case types.KindJob:
+					m := new(request.JobManifest)
+					err := m.FromYaml(i)
 					if err != nil {
-						fmt.Println(err)
+						_ = fmt.Errorf("invalid specification: %s", err.Error())
 						return
 					}
-				} else {
-					fmt.Println("update route")
-					rr, err = cli.Cluster.V1().Namespace(namespace).Volume(rr.Meta.Name).Update(envs.Background(), spec)
+					if m.Meta.Name == nil {
+						break
+					}
+					fmt.Printf("Add job manifest: %s\n", *m.Meta.Name)
+					spec.Jobs[*m.Meta.Name] = m
+					break
+				case types.KindRoute:
+					m := new(request.RouteManifest)
+					err := m.FromYaml(i)
 					if err != nil {
-						fmt.Println(err)
+						_ = fmt.Errorf("invalid specification: %s", err.Error())
 						return
 					}
-				}
-
-				if rr != nil {
-					route := view.FromApiVolumeView(rr)
-					route.Print()
-				} else {
-					fmt.Println("ooops")
+					if m.Meta.Name == nil {
+						break
+					}
+					fmt.Printf("Add route manifest: %s\n", *m.Meta.Name)
+					spec.Routes[*m.Meta.Name] = m
+					break
 				}
 			}
 
+			status, err := cli.Cluster.V1().Namespace(namespace).Apply(envs.Background(), spec)
+			if err != nil {
+				_ = fmt.Errorf("invalid specification: %s", err.Error())
+				return
+			}
+
+			fmt.Println()
+			ns := view.FromApiNamespaceStatusView(status)
+			ns.Print()
 			return
 
 		}

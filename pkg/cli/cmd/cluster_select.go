@@ -67,6 +67,8 @@ var ClusterSelectCmd = &cobra.Command{
 				fmt.Println(err)
 			}
 
+			fmt.Println(fmt.Sprintf("Cluster `%s` selected", name))
+
 			return
 		}
 
@@ -88,5 +90,7 @@ var ClusterSelectCmd = &cobra.Command{
 		if err != nil {
 			panic(err)
 		}
+
+		fmt.Println(fmt.Sprintf("Cluster `%s` selected", name))
 	},
 }

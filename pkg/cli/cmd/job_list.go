@@ -26,47 +26,37 @@ import (
 )
 
 func init() {
-	serviceCmd.AddCommand(serviceInspectCmd)
+	jobCmd.AddCommand(jobListCmd)
 }
 
-const serviceInspectExample = `
-  # Get information for 'redis' service in 'ns-demo' namespace
-  lb service inspect ns-demo redis
+const jobListExample = `
+  # Get all jobs for 'ns-demo' namespace  
+  lb job ls ns-demo
 `
 
-var serviceInspectCmd = &cobra.Command{
-	Use:     "inspect [NAMESPACE]/[NAME]",
-	Short:   "Service info by name",
-	Example: serviceInspectExample,
+var jobListCmd = &cobra.Command{
+	Use:     "ls [NAMESPACE]",
+	Short:   "Display the jobs list",
+	Example: jobListExample,
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		namespace, name, err := serviceParseSelfLink(args[0])
-		checkError(err)
+		namespace := args[0]
 
 		cli := envs.Get().GetClient()
-		svc, err := cli.Cluster.V1().Namespace(namespace).Service(name).Get(envs.Background())
+
+		response, err := cli.Cluster.V1().Namespace(namespace).Job().List(envs.Background())
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		routes, err := cli.Cluster.V1().Namespace(namespace).Route().List(envs.Background())
-		if err != nil {
-			fmt.Println(err)
+		if response == nil || len(*response) == 0 {
+			fmt.Println("no jobs available")
 			return
 		}
 
-		for _, r := range *routes {
-			for _, rule := range r.Spec.Rules {
-				if rule.Service == svc.Meta.Name {
-					fmt.Println("exposed:", r.Status.State, r.Spec.Domain, r.Spec.Port)
-				}
-			}
-
-		}
-
-		ss := view.FromApiServiceView(svc)
-		ss.Print()
+		list := view.FromApiJobListView(response)
+		list.Print()
 	},
 }
