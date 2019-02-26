@@ -10,18 +10,18 @@ spec:
   concurrency:
     limit: 1
   provider:
-    timeout: "60s"
+    timeout: "10s"
     http:
-      endpoint: "http://127.0.0.1/job/request"
+      endpoint: "http://127.0.0.1:2965/task/manifest"
       method: GET
       headers:
-        x-lastbackend-auth: "token"
+        X-LASTBACKEND-AUTH: "lstbknd"
   hook:
     http:
-      endpoint: "http://127.0.0.1/job/hook"
-      method: POST
+      endpoint: "http://127.0.0.1:2965/task/status"
+      method: PUT
       headers:
-        "x-lastbackend-auth": "token"
+        X-LASTBACKEND-AUTH: "lstbknd"
   task:
     runtime:
       services: [dind]

@@ -34,7 +34,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const defaultHost = "http://api.lstbknd.net:2965"
+const defaultHost = "https://api.lastbackend.com"
 
 func init() {
 	RootCmd.AddCommand(
@@ -79,7 +79,9 @@ var RootCmd = &cobra.Command{
 			return
 		}
 
-		token = cmd.Flag("token").Value.String()
+		if cmd.Flag("token").Value != nil && len(cmd.Flag("token").Value.String()) != 0 {
+			token = cmd.Flag("token").Value.String()
+		}
 
 		host := defaultHost
 		config := &client.Config{Token: token}
@@ -107,7 +109,6 @@ var RootCmd = &cobra.Command{
 		// ============================
 
 		config.Headers = make(map[string]string, 0)
-
 
 		cn := cmd.Flag("cluster").Value.String()
 		if len(cn) != 0 {
