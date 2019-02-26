@@ -30,6 +30,8 @@ import (
 )
 
 func init() {
+	serviceLogsCmd.Flags().IntP("tail", "t", 0, "tail last n lines")
+	serviceLogsCmd.Flags().BoolP("follow", "f", false, "follow logs")
 	serviceCmd.AddCommand(serviceLogsCmd)
 }
 
@@ -46,6 +48,20 @@ var serviceLogsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		opts := new(request.ServiceLogsOptions)
+
+		var err error
+
+		opts.Tail, err = cmd.Flags().GetInt("tail")
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		opts.Follow, err = cmd.Flags().GetBool("follow")
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
 
 		namespace, name, err := serviceParseSelfLink(args[0])
 		checkError(err)

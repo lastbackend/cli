@@ -31,7 +31,9 @@ import (
 )
 
 func init() {
-	jobLogsCmd.Flags().StringP("task", "t", "", "read logs for particular task")
+	jobLogsCmd.Flags().IntP("tail", "t", 0, "tail last n lines")
+	jobLogsCmd.Flags().BoolP("follow", "f", false, "follow logs")
+	jobLogsCmd.Flags().String("task", "", "read logs for particular task")
 	jobCmd.AddCommand(jobLogsCmd)
 }
 
@@ -53,6 +55,18 @@ var jobLogsCmd = &cobra.Command{
 		checkError(err)
 
 		task, err := cmd.Flags().GetString("task")
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		opts.Tail, err = cmd.Flags().GetInt("tail")
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		opts.Follow, err = cmd.Flags().GetBool("follow")
 		if err != nil {
 			fmt.Println(err.Error())
 			return

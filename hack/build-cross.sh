@@ -1,12 +1,9 @@
 #!/bin/bash
 
-go get -u github.com/golang/dep/cmd/dep
-dep ensure
-
 mkdir -p build/linux && mkdir -p build/darwin
 
 ## declare an array of components variable
-declare -a arr=("kit" "node" "cli")
+declare -a arr=("cli")
 
 if [[ $1 != "" ]]; then
   arr=($1)
