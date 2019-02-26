@@ -6,10 +6,6 @@ meta:
     type: proxy
     demo: test
 spec:
-  selector:
-    node:
-    labels:
-      type: "frontend"
   replicas: 1
   network:
     ports: ["80:80/tcp"]
