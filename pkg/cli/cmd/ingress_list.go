@@ -36,7 +36,7 @@ const ingressListExample = `
 
 var ingressListCmd = &cobra.Command{
 	Use:     "ls",
-	Short:   "Display the ingresss list",
+	Short:   "Display the ingress list",
 	Example: ingressListExample,
 	Args:    cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -49,7 +49,7 @@ var ingressListCmd = &cobra.Command{
 		}
 
 		if response == nil || len(*response) == 0 {
-			fmt.Println("no ingresss available")
+			fmt.Println("no ingress available")
 			return
 		}
 

@@ -20,7 +20,6 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/lastbackend/lastbackend/pkg/log"
 	"os"
 	"strings"
 
@@ -31,10 +30,12 @@ import (
 	"github.com/lastbackend/cli/pkg/client"
 	"github.com/lastbackend/cli/pkg/client/genesis/http/v1/request"
 	"github.com/lastbackend/cli/pkg/util/filesystem"
+	"github.com/lastbackend/lastbackend/pkg/log"
 	"github.com/spf13/cobra"
 )
 
 const defaultHost = "https://api.lastbackend.com"
+const version = "0.1.0"
 
 func init() {
 	RootCmd.AddCommand(
@@ -404,9 +405,9 @@ func Execute() {
 	RootCmd.PersistentFlags().StringP("cluster", "C", "", "Use cluster for operations")
 	RootCmd.PersistentFlags().Bool("debug", false, "Enable debug mode")
 	RootCmd.PersistentFlags().Bool("tls", false, "Use TLS")
-	RootCmd.PersistentFlags().String("tlscacert", getSSLPath("ca.pem"), fmt.Sprintf("Trust certs signed only by this CA (default \"%s\")", getSSLPath("ca.pem")))
-	RootCmd.PersistentFlags().String("tlscert", getSSLPath("cert.pem"), fmt.Sprintf("Path to TLS certificate file (default \"%s\")", getSSLPath("cert.pem")))
-	RootCmd.PersistentFlags().String("tlskey", getSSLPath("key.pem"), fmt.Sprintf("Path to TLS key file (default \"%s\")", getSSLPath("key.pem")))
+	RootCmd.PersistentFlags().String("tlscacert", "", fmt.Sprintf("Trust certs signed only by this CA (default \"%s\")", getSSLPath("ca.pem")))
+	RootCmd.PersistentFlags().String("tlscert", "", fmt.Sprintf("Path to TLS certificate file (default \"%s\")", getSSLPath("cert.pem")))
+	RootCmd.PersistentFlags().String("tlskey", "", fmt.Sprintf("Path to TLS key file (default \"%s\")", getSSLPath("key.pem")))
 	RootCmd.PersistentFlags().String("token", "", "Set access token for header")
 
 	if err := RootCmd.Execute(); err != nil {
