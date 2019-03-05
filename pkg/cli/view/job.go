@@ -90,7 +90,7 @@ func (s *Job) Print() {
 
 	if len(s.Tasks) > 0 {
 
-		taskTable := table.New([]string{"Name", "Status", "Age", "Message"})
+		taskTable := table.New([]string{"Name", "State", "Status", "Age", "Message"})
 		taskTable.VisibleHeader = true
 
 		for _, t := range s.Tasks {
@@ -98,8 +98,10 @@ func (s *Job) Print() {
 			var taskRow = map[string]interface{}{}
 			got, _ := timeago.TimeAgoWithTime(time.Now(), t.Meta.Created)
 			taskRow["Name"] = t.Meta.Name
-			taskRow["Status"] = t.Status.State
+			taskRow["State"] = t.Status.State
+			taskRow["Status"] = t.Status.Status
 			taskRow["Age"] = got
+			taskRow["Message"] = t.Status.Message
 			taskTable.AddRow(taskRow)
 		}
 
