@@ -98,7 +98,9 @@ var jobLogsCmd = &cobra.Command{
 				os.Exit(1)
 			}
 
-			fmt.Println(">", doc.Selflink, doc.Data)
+			if doc.ContainerType == types.ContainerTypeRuntimeTask {
+				fmt.Println(doc.Data)
+			}
 		}
 	},
 }
