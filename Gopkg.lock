@@ -94,7 +94,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6e192f74e8d0d51035872ecbfcb8f68867b797cb3348cba7a99da2f648ebd55e"
+  digest = "1:6b08e8fbcc104cf85a0232586666d79c009f841657b2f00cf40f89226aca50aa"
   name = "github.com/lastbackend/lastbackend"
   packages = [
     "pkg/api/client",
@@ -119,7 +119,7 @@
     "pkg/util/validator",
   ]
   pruneopts = "UT"
-  revision = "ee14af9c754455973fd3bfda1872a57de527cdae"
+  revision = "2b1b56324631c74e034c2be93123ec20d3e65f78"
 
 [[projects]]
   branch = "master"
@@ -191,12 +191,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:87c2e02fb01c27060ccc5ba7c5a407cc91147726f8f40b70cceeedbc52b1f3a8"
+  digest = "1:e4c72127d910a96daf869a44f3dd563b86dbe6931a172863a0e99c5ff04b59e4"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e1e72e9de974bd926e5c56f83753fba2df402ce5"
-  version = "v1.3.0"
+  revision = "dae0fa8d5b0c810a8ab733fbd5510c7cae84eca4"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:3e39bafd6c2f4bf3c76c3bfd16a2e09e016510ad5db90dc02b88e2f565d6d595"
@@ -226,12 +226,12 @@
   version = "v0.0.3"
 
 [[projects]]
-  digest = "1:68ea4e23713989dc20b1bded5d9da2c5f9be14ff9885beef481848edd18c26cb"
+  digest = "1:1b753ec16506f5864d26a28b43703c58831255059644351bbcb019b843950900"
   name = "github.com/spf13/jwalterweatherman"
   packages = ["."]
   pruneopts = "UT"
-  revision = "4a4406e478ca629068e7768fc33f3f044173c0a6"
-  version = "v1.0.0"
+  revision = "94f6ae3ed3bceceafa716478c5fbf8d29ca601a1"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:c1b1102241e7f645bc8e0c22ae352e8f0dc6484b6cb4d132fa9f24174e0119e2"
@@ -259,7 +259,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "31a38585487a4b1fd6ff4f8f3db26f1fb296ac82"
+  revision = "c2843e01d9a2bc60bb26ad24e09734fdc2d9ec58"
 
 [[projects]]
   branch = "master"
@@ -272,18 +272,18 @@
     "idna",
   ]
   pruneopts = "UT"
-  revision = "c95aed5357e77a4bf7d3955c46740000a17adee1"
+  revision = "d8887717615a059821345a5c23649351b52a1c0b"
 
 [[projects]]
   branch = "master"
-  digest = "1:c65bd2920426dabbd19ea6a3e54ff8475fa930935ba58d23e8db49c142648279"
+  digest = "1:944736317d4f2fb1c1015ef9ca05fd9313b4e19f1128901cc678f636435fa9b0"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "a34e9553db1e492c9a76e60db2296ae7e5fbb772"
+  revision = "fead79001313d15903fb4605b4a1b781532cd93e"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
