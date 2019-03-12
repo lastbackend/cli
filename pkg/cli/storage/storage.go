@@ -123,6 +123,19 @@ func DelLocalCluster(name string) error {
 
 	for i, item := range items {
 		if item.Name == name {
+
+			cl, err := GetCluster()
+			if err != nil {
+				return err
+			}
+
+			match := strings.Split(cl, ".")
+			if match[0] == "l" && match[1] == name {
+				if err := SetCluster(""); err != nil {
+					return err
+				}
+			}
+
 			items = append(items[:i], items[i+1:]...)
 			break
 		}
