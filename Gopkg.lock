@@ -218,12 +218,12 @@
   version = "v1.3.0"
 
 [[projects]]
-  digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
+  digest = "1:22799aea8fe96dd5693abdd1eaa14b1b29e3eafbdc7733fa155b3cb556c8a7ae"
   name = "github.com/spf13/cobra"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
-  version = "v0.0.3"
+  revision = "67fc4837d267bc9bfd6e47f77783fcc3dffc68de"
+  version = "v0.0.4"
 
 [[projects]]
   digest = "1:1b753ec16506f5864d26a28b43703c58831255059644351bbcb019b843950900"
@@ -316,6 +316,14 @@
   revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
   version = "v2.2.2"
 
+[[projects]]
+  branch = "v3"
+  digest = "1:e11e6a71536a7120d56ea0c0cbfb4cf2b24b328f3982e8d03ce6939f7fe8b14c"
+  name = "gopkg.in/yaml.v3"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "55513cacd4ae8b250e3a9084ab9d8c407b1ed618"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -335,7 +343,7 @@
     "github.com/mattn/go-runewidth",
     "github.com/pkg/errors",
     "github.com/spf13/cobra",
-    "gopkg.in/yaml.v2",
+    "gopkg.in/yaml.v3",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
