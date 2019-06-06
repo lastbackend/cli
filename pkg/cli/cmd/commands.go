@@ -161,6 +161,7 @@ var RootCmd = &cobra.Command{
 					return
 				}
 				host = cluster.Endpoint
+				config.Token = cluster.Token
 			case "r.":
 				config.Headers = make(map[string]string, 0)
 				config.Headers["X-Cluster-Name"] = cluster[2:]

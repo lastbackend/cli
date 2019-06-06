@@ -49,8 +49,7 @@ var ClusterDelCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		name := args[0]
 
-		err := storage.DelLocalCluster(name)
-		if err != nil {
+		if err := storage.DelLocalCluster(name); err != nil {
 			panic(err)
 		}
 

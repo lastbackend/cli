@@ -101,7 +101,7 @@ func (s *Task) Print() {
 				fmt.Printf("Error: %s\n", step.Message)
 			}
 
-			taskTable := table.New([]string{"Command", "Status", "Age", "Message"})
+			taskTable := table.New([]string{"Command", "State", "Age", "Message"})
 			taskTable.VisibleHeader = true
 
 			for _, cmd := range step.Commands {

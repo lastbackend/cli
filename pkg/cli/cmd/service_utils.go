@@ -59,7 +59,8 @@ func serviceManifestFlags(cmd *cobra.Command) {
 	cmd.Flags().StringArray("env-from-secret", make([]string, 0), "set service env from secret")
 	cmd.Flags().StringArray("env-from-config", make([]string, 0), "set service env from config")
 	cmd.Flags().StringP("image", "i", "", "set service image")
-	cmd.Flags().String("image-secret", "", "set service image auth")
+	cmd.Flags().String("image-secret-name", "", "set service image auth secret name")
+	cmd.Flags().String("image-secret-key", "", "set service image auth secret key")
 }
 
 func serviceParseManifest(cmd *cobra.Command, name, image string) (*request.ServiceManifest, error) {
@@ -97,7 +98,10 @@ func serviceParseManifest(cmd *cobra.Command, name, image string) (*request.Serv
 	replicas, err := cmd.Flags().GetInt("replicas")
 	checkFlagParseError(err)
 
-	auth, err := cmd.Flags().GetString("image-secret")
+	authName, err := cmd.Flags().GetString("image-secret-name")
+	checkFlagParseError(err)
+
+	authKey, err := cmd.Flags().GetString("image-secret-key")
 	checkFlagParseError(err)
 
 	opts := new(request.ServiceManifest)
@@ -190,8 +194,12 @@ func serviceParseManifest(cmd *cobra.Command, name, image string) (*request.Serv
 	opts.Meta.Description = &description
 	cs.Image.Name = image
 
-	if auth != types.EmptyString {
-		cs.Image.Secret = auth
+	if authName != types.EmptyString {
+		cs.Image.Secret.Name = authName
+	}
+
+	if authKey != types.EmptyString {
+		cs.Image.Secret.Key = authKey
 	}
 
 	css = append(css, cs)
