@@ -42,7 +42,7 @@ var ClusterListCmd = &cobra.Command{
 	Args:    cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fmt.Println("Remotely clusters list:",)
+		fmt.Println("Remotely clusters list:")
 
 		cli := envs.Get().GetClient()
 
